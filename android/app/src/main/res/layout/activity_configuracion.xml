@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/fondo"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Barra superior -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/btnVolverConfig"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Volver"
+                android:src="@drawable/ic_flecha_atras" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="Configuración"
+                android:textColor="@color/texto"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Asistente y avisos -->
+        <TextView
+            style="@style/TarjetaTitulo"
+            android:layout_marginTop="20dp"
+            android:text="General" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/TarjetaPerfil"
+            android:layout_marginTop="10dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Nivel de conocimiento -->
+                <LinearLayout
+                    android:id="@+id/filaNivel"
+                    style="@style/FilaPerfil">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_perfil_config"
+                        app:tint="@color/texto_sec" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nivel de conocimiento"
+                            android:textColor="@color/texto"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:id="@+id/tvNivelActual"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Cargando…"
+                            android:textColor="@color/azul"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:src="@drawable/ic_perfil_flecha"
+                        app:tint="@color/texto_sec" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="56dp"
+                    android:background="@color/fondo" />
+
+                <!-- Notificaciones -->
+                <LinearLayout
+                    android:id="@+id/filaConfigNotif"
+                    style="@style/FilaPerfil">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_perfil_notif"
+                        app:tint="@color/texto_sec" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_weight="1"
+                        android:text="Notificaciones"
+                        android:textColor="@color/texto"
+                        android:textSize="16sp" />
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:src="@drawable/ic_perfil_flecha"
+                        app:tint="@color/texto_sec" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Datos -->
+        <TextView
+            style="@style/TarjetaTitulo"
+            android:layout_marginTop="24dp"
+            android:text="Datos" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/TarjetaPerfil"
+            android:layout_marginTop="10dp">
+
+            <LinearLayout
+                android:id="@+id/filaBorrarDatos"
+                style="@style/FilaPerfil">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_perfil_offline"
+                    app:tint="@color/texto_sec" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Borrar datos del dispositivo"
+                        android:textColor="@color/texto"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Vehículos guardados y notificaciones"
+                        android:textColor="@color/texto_sec"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Acerca de -->
+        <TextView
+            style="@style/TarjetaTitulo"
+            android:layout_marginTop="24dp"
+            android:text="Acerca de" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/TarjetaPerfil"
+            android:layout_marginTop="10dp">
+
+            <LinearLayout
+                style="@style/FilaPerfil"
+                android:clickable="false"
+                android:focusable="false">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Versión de la app"
+                    android:textColor="@color/texto"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/tvVersion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/texto_sec"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+</ScrollView>

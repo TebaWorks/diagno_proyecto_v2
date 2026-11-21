@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="ph_marca">
+        <item>Agregar marca</item>
+    </string-array>
+    <string-array name="ph_modelo">
+        <item>Agregar modelo</item>
+    </string-array>
+    <string-array name="ph_anio">
+        <item>Agregar año</item>
+    </string-array>
+    <string-array name="ph_combustible">
+        <item>Agregar combustible</item>
+    </string-array>
+</resources>

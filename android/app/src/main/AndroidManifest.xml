@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature
+        android:name="android.hardware.camera.any"
+        android:required="false" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.ProyectoFinal">
+
+        <!-- Portada: es la pantalla que abre la app -->
+        <activity
+            android:name=".ui.theme.SplashActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.theme.BienvenidaActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.theme.MainActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.ProyectoFinal"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.theme.SinConexionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.theme.crear_cuenta"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.theme.LoginActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.theme.perfil"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.theme.VehiculoActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.theme.HistorialActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.theme.NotificacionesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.theme.ConfiguracionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.theme.AgregarVehiculoActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.theme.ChequeoGuiadoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.theme.ChequeoDetalleActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.theme.NivelActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.theme.chat_con_ia"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.theme.camara_adjuntar"
+            android:exported="false" />
+
+        <!-- Resultado del análisis y guía paso a paso -->
+        <activity
+            android:name=".ui.theme.ResultadoAnalisisActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.theme.GuiaPasosActivity"
+            android:exported="false" />
+    </application>
+
+</manifest>

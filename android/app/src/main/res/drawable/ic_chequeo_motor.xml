@@ -1,0 +1,25 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="40dp"
+    android:height="40dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- tapa superior -->
+    <path
+        android:fillColor="#1B2D4F"
+        android:pathData="M8,4h6v2h-6z" />
+    <!-- bloque principal -->
+    <path
+        android:fillColor="#1B2D4F"
+        android:pathData="M6,7h9l2,2h2v2h2v5h-2v2h-3l-1,1H8l-2,-2z" />
+    <!-- soporte izquierdo -->
+    <path
+        android:fillColor="#1B2D4F"
+        android:pathData="M2,11h2v5H2z" />
+    <!-- detalle -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M9,10h6v5H9z" />
+    <path
+        android:fillColor="#1E7CF2"
+        android:pathData="M10.5,11.5h3v2h-3z" />
+</vector>
