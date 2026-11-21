@@ -87,4 +87,31 @@ class AuthRepositorio {
             supabase.auth.updateUser { password = nuevaClave }
         }
     }
+    // Crea o actualiza la llave local con los datos del usuario conectado
+    suspend fun crearLlave(sesion: SesionLocal) {
+        val id = supabase.auth.currentUserOrNull()?.id ?: return
+        val nombre = runCatching { nombreUsuario() }.getOrDefault("usuario")
+        val nivel = runCatching { nivelActual() }.getOrNull()
+        sesion.guardar(id, nombre, nivel)
+    }
+
+    // Estado del acceso, tolerante a la falta de internet
+    suspend fun estadoSesion(sesion: SesionLocal, hayInternet: Boolean): EstadoSesion {
+        val enSupabase = runCatching {
+            supabase.auth.awaitInitialization()
+            supabase.auth.currentUserOrNull() != null
+        }.getOrDefault(false)
+
+        return when {
+            enSupabase -> EstadoSesion.ACTIVA
+            sesion.tieneLlave() && !hayInternet -> EstadoSesion.SIN_CONEXION
+            sesion.tieneLlave() && hayInternet -> EstadoSesion.REVOCADA
+            else -> EstadoSesion.NINGUNA
+        }
+    }
 }
+// ACTIVA: sesión válida en Supabase.
+// SIN_CONEXION: hay llave local, pero no hay internet para confirmar; se deja usar la app.
+// REVOCADA: hay internet y Supabase ya no reconoce la sesión; hay que volver a entrar.
+// NINGUNA: nunca inició sesión en este teléfono.
+enum class EstadoSesion { ACTIVA, SIN_CONEXION, REVOCADA, NINGUNA }
