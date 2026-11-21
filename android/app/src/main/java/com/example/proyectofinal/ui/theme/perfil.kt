@@ -99,8 +99,8 @@ class perfil : ComponentActivity() {
             when {
                 nuevoNombre.isEmpty() ->
                     etNombre.error = "Ingresa tu nombre"
-                nuevaPass.isNotEmpty() && nuevaPass.length < 6 ->
-                    etPassword.error = "Mínimo 6 caracteres"
+                nuevaPass.isNotEmpty() && nuevaPass.length < 8 ->
+                    etPassword.error = "Mínimo 8 caracteres"
                 else -> {
                     btnGuardar.isEnabled = false
                     lifecycleScope.launch {
@@ -166,10 +166,12 @@ class perfil : ComponentActivity() {
     }
 
     // Cierra la sesión en Supabase y vuelve a la pantalla de bienvenida
+    // Cierra la sesión: es lo ÚNICO que borra la llave y los datos del teléfono
     private fun cerrarSesion() {
         lifecycleScope.launch {
-            CacheLocal(this@perfil).borrar()   // borra los datos guardados en el teléfono
-            NotificacionLocal(this@perfil).borrar()   // borra las notificaciones guardadas
+            CacheLocal(this@perfil).borrar()                       // datos guardados
+            NotificacionLocal(this@perfil).borrar()                // notificaciones
+            com.example.proyectofinal.data.repositorio.SesionLocal(this@perfil).borrar()   // llave
             try {
                 auth.cerrarSesion()
             } catch (e: Exception) {

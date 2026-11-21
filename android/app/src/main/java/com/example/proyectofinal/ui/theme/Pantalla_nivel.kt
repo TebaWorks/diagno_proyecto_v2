@@ -14,12 +14,15 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.proyectofinal.R
 import com.example.proyectofinal.data.repositorio.AuthRepositorio
+import com.example.proyectofinal.data.repositorio.SesionLocal
+import com.example.proyectofinal.data.repositorio.mensajeErrorAuth
 import kotlinx.coroutines.launch
 
 // Pantalla "Selección de nivel": va después del login y antes del inicio/perfil
 class NivelActivity : ComponentActivity() {
 
     private val auth = AuthRepositorio()
+    private val sesion by lazy { SesionLocal(this) }
 
     // Valores que se guardan en perfil.nivel_conocimiento
     private val NOVATO = "novato"
@@ -61,9 +64,9 @@ class NivelActivity : ComponentActivity() {
                 findViewById(R.id.iconoAvanzado), findViewById(R.id.radioAvanzado))
         )
         opciones.forEach { op -> op.card.setOnClickListener { seleccionar(op.valor) } }
-        seleccionar(NOVATO)
 
-        // Si el usuario ya tenía un nivel guardado, lo deja preseleccionado
+        // Preselecciona el nivel guardado en el teléfono y luego el de Supabase
+        seleccionar(sesion.nivel())
         lifecycleScope.launch {
             try {
                 auth.nivelActual()?.let { seleccionar(it) }
@@ -79,26 +82,24 @@ class NivelActivity : ComponentActivity() {
             lifecycleScope.launch {
                 try {
                     auth.guardarNivel(nivel)
+                    sesion.actualizarNivel(nivel)
                     irAlInicio()
                 } catch (e: Exception) {
                     Log.e("NIVEL", "No se pudo guardar el nivel", e)
-                    Toast.makeText(
-                        this@NivelActivity,
-                        "No se pudo guardar: ${e.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    Toast.makeText(this@NivelActivity, mensajeErrorAuth(e), Toast.LENGTH_LONG).show()
                     btnContinuar.isEnabled = true
                     btnContinuar.alpha = 1f
                 }
             }
         }
 
-        // La flecha cancela el ingreso: cierra la sesión y vuelve a la bienvenida
+        // La flecha cancela el ingreso: cierra la sesión, borra la llave y vuelve a la bienvenida
         findViewById<View>(R.id.btnVolverNivel).setOnClickListener {
             lifecycleScope.launch {
                 try { auth.cerrarSesion() } catch (e: Exception) {
                     Log.e("NIVEL", "Error al cerrar sesión", e)
                 }
+                sesion.borrar()
                 irAlInicio()
             }
         }

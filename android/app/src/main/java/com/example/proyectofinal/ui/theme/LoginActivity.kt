@@ -11,6 +11,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
 import com.example.proyectofinal.R
 import com.example.proyectofinal.data.repositorio.AuthRepositorio
+import com.example.proyectofinal.data.repositorio.SesionLocal
+import com.example.proyectofinal.data.repositorio.mensajeErrorAuth
 import kotlinx.coroutines.launch
 
 class LoginActivity : ComponentActivity() {
@@ -31,21 +33,24 @@ class LoginActivity : ComponentActivity() {
                 Toast.makeText(this, "Completa todos los campos", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            if (!Conexion.hayInternet(this)) {
+                Toast.makeText(this, "Necesitas internet para iniciar sesión", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
 
             btnEntrar.isEnabled = false
             lifecycleScope.launch {
                 try {
-                    AuthRepositorio().iniciarSesion(correo, pass)
+                    val auth = AuthRepositorio()
+                    auth.iniciarSesion(correo, pass)
+                    auth.crearLlave(SesionLocal(this@LoginActivity))   // guarda la llave de acceso
+
                     val intent = Intent(this@LoginActivity, NivelActivity::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     startActivity(intent)
                 } catch (e: Exception) {
                     Log.e("LOGIN", "Error al iniciar sesión", e)
-                    Toast.makeText(
-                        this@LoginActivity,
-                        "Correo o contraseña incorrectos",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(this@LoginActivity, mensajeErrorAuth(e), Toast.LENGTH_LONG).show()
                 } finally {
                     btnEntrar.isEnabled = true
                 }
