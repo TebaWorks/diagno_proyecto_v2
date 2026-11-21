@@ -1,0 +1,16 @@
+﻿supabase/.temp/
+supabase/.branches/
+android/local.properties
+android/.gradle/
+android/build/
+android/app/build/
+android/.idea/
+android/.kotlin/
+*.apk
+*.aab
+*.jks
+*.keystore
+.env
+.env.*
+Thumbs.db
+desktop.ini
