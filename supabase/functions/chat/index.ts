@@ -23,6 +23,8 @@ FORMATO DE SALIDA (JSON obligatorio):
 - "necesita_busqueda": true SOLO si la pregunta es automotriz, la INFORMACIÓN DEL VEHÍCULO no alcanza para responder bien y una búsqueda en internet aportaría. En cualquier otro caso, false. Ante una emergencia de seguridad, siempre false.
 - "consulta_busqueda": si necesita_busqueda es true, una búsqueda breve en español que incluya la marca y el modelo del vehículo; si no, texto vacío.
 - "derivar_taller": true si recomiendas acudir a un taller mecánico.
+- "resumen_offline": la respuesta resumida en máximo 400 caracteres, autosuficiente y en lenguaje simple, para consultarla sin internet. Texto vacío si la pregunta no es automotriz.
+- "palabras_clave": de 3 a 8 palabras clave en minúsculas y sin tildes (incluye sinónimos comunes, por ejemplo "neumatico", "llanta"). Lista vacía si la pregunta no es automotriz.
 `;
 
 const INSTRUCCIONES_WEB = `
@@ -62,9 +64,14 @@ const ESQUEMA = {
     necesita_busqueda: { type: "BOOLEAN" },
     consulta_busqueda: { type: "STRING" },
     derivar_taller: { type: "BOOLEAN" },
+    resumen_offline: { type: "STRING" },
+    palabras_clave: { type: "ARRAY", items: { type: "STRING" } },
   },
   required: ["respuesta", "necesita_busqueda", "derivar_taller"],
 };
+
+// Minúsculas, sin tildes y sin espacios sobrantes
+const normalizar = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim();
 
 const ESQUEMA_ANALISIS = {
   type: "OBJECT",
@@ -216,7 +223,10 @@ async function pedirJSON(sistema: string, contents: any[], esquema: any) {
 async function preguntarGemini(sistema: string, contents: any[]) {
   const { modelo, datos: o, texto } = await pedirJSON(sistema, contents, ESQUEMA);
   if (!o) {
-    return { modelo, respuesta: texto || "No pude generar una respuesta.", necesita_busqueda: false, consulta_busqueda: "", derivar_taller: false };
+    return {
+      modelo, respuesta: texto || "No pude generar una respuesta.", necesita_busqueda: false,
+      consulta_busqueda: "", derivar_taller: false, resumen_offline: "", palabras_clave: [] as string[],
+    };
   }
   return {
     modelo,
@@ -224,6 +234,10 @@ async function preguntarGemini(sistema: string, contents: any[]) {
     necesita_busqueda: o.necesita_busqueda === true,
     consulta_busqueda: String(o.consulta_busqueda ?? ""),
     derivar_taller: o.derivar_taller === true,
+    resumen_offline: String(o.resumen_offline ?? "").slice(0, 800),
+    palabras_clave: Array.isArray(o.palabras_clave)
+      ? [...new Set(o.palabras_clave.map((p: any) => normalizar(String(p))).filter(Boolean))].slice(0, 8) as string[]
+      : [] as string[],
   };
 }
 
@@ -254,7 +268,7 @@ Deno.serve(async (req) => {
     const sb = createClient(url, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
     });
-    // Cliente de servicio: solo para guardar la respuesta de la IA
+    // Cliente de servicio: solo para guardar la respuesta de la IA y las fichas offline
     const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     const { data: { user } } = await sb.auth.getUser();
@@ -374,6 +388,21 @@ Deno.serve(async (req) => {
     }).select("id").single();
     if (errorIA) console.error("No se guardó la respuesta:", errorIA);
 
+    // 11. Guardar la ficha para el modo sin conexión
+    let fichaGuardada = false;
+    if (res.resumen_offline && res.palabras_clave.length >= 2) {
+      const { error: errorFicha } = await admin.from("conocimiento_offline").insert({
+        usuario_id: user.id,
+        titulo: mensaje.slice(0, 80),
+        contenido: res.resumen_offline,
+        palabras_clave: res.palabras_clave,
+        urgencia: res.derivar_taller ? "alta" : "media",
+        origen: "consulta",
+      });
+      if (errorFicha) console.error("No se guardó la ficha offline:", errorFicha);
+      else fichaGuardada = true;
+    }
+
     return json({
       conversacion_id,
       mensaje_id: msg?.id ?? null,
@@ -382,6 +411,7 @@ Deno.serve(async (req) => {
       uso_web: fuentes.length > 0,
       fuentes: fuentesCortas,
       tiempo_ms,
+      ficha_offline: fichaGuardada,
       guardado: !errorUsuario && !errorIA,
       error_guardado: errorUsuario?.message ?? errorIA?.message ?? null,
     });
