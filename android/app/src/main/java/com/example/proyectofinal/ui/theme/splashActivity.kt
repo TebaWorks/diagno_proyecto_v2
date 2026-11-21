@@ -12,6 +12,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
 import com.example.proyectofinal.R
 import com.example.proyectofinal.data.repositorio.AuthRepositorio
+import com.example.proyectofinal.data.repositorio.CacheLocal
+import com.example.proyectofinal.data.repositorio.EstadoSesion
+import com.example.proyectofinal.data.repositorio.SesionLocal
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -36,23 +39,31 @@ class SplashActivity : ComponentActivity() {
         lifecycleScope.launch {
             delay(duracionMs)
             try {
-                val destino: Class<*> = if (Conexion.hayInternet(this@SplashActivity)) {
-                    val haySesion = try {
-                        AuthRepositorio().haySesion()
-                    } catch (e: CancellationException) {
-                        throw e
-                    } catch (e: Throwable) {
-                        Log.e("SPLASH", "Error al revisar sesión", e)
-                        false
-                    }
-                    if (haySesion) MainActivity::class.java else BienvenidaActivity::class.java
-                } else {
-                    SinConexionActivity::class.java
-                }
+                val hayInternet = Conexion.hayInternet(this@SplashActivity)
+                val sesion = SesionLocal(this@SplashActivity)
+                val auth = AuthRepositorio()
 
-                Toast.makeText(
-                    this@SplashActivity, "Voy a: ${destino.simpleName}", Toast.LENGTH_SHORT
-                ).show()
+                val destino: Class<*> = when (auth.estadoSesion(sesion, hayInternet)) {
+                    EstadoSesion.ACTIVA -> {
+                        // Usuarios que iniciaron sesión antes de existir la llave
+                        if (!sesion.tieneLlave()) runCatching { auth.crearLlave(sesion) }
+                        MainActivity::class.java
+                    }
+                    EstadoSesion.SIN_CONEXION -> MainActivity::class.java
+                    EstadoSesion.REVOCADA -> {
+                        sesion.borrar()
+                        CacheLocal(this@SplashActivity).borrar()
+                        Toast.makeText(
+                            this@SplashActivity,
+                            "Tu sesión expiró. Vuelve a iniciar sesión.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        BienvenidaActivity::class.java
+                    }
+                    EstadoSesion.NINGUNA ->
+                        if (hayInternet) BienvenidaActivity::class.java
+                        else SinConexionActivity::class.java
+                }
 
                 val intent = Intent(this@SplashActivity, destino)
                 if (destino == SinConexionActivity::class.java) {
@@ -65,7 +76,7 @@ class SplashActivity : ComponentActivity() {
             } catch (e: Throwable) {
                 Log.e("SPLASH", "Error al abrir la siguiente pantalla", e)
                 Toast.makeText(
-                    this@SplashActivity, "Error en Splash: $e", Toast.LENGTH_LONG
+                    this@SplashActivity, "No se pudo iniciar la app. Intenta de nuevo.", Toast.LENGTH_LONG
                 ).show()
             }
         }

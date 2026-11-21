@@ -16,6 +16,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.launch
 import com.example.proyectofinal.data.repositorio.AuthRepositorio
 import com.example.proyectofinal.data.repositorio.CacheLocal
+import com.example.proyectofinal.data.repositorio.EstadoSesion
+import com.example.proyectofinal.data.repositorio.SesionLocal
 
 class MainActivity : ComponentActivity() {
 
@@ -80,32 +82,43 @@ class MainActivity : ComponentActivity() {
 
     }
 
-    // Se ejecuta al abrir y también al volver desde Perfil, así el saludo se actualiza
+    // Se ejecuta al abrir y al volver de otras pantallas.
+    // Con la llave local, la app funciona aunque no haya internet.
     override fun onResume() {
         super.onResume()
         lifecycleScope.launch {
             val auth = AuthRepositorio()
+            val sesion = SesionLocal(this@MainActivity)
             val cache = CacheLocal(this@MainActivity)
+            val estado = auth.estadoSesion(sesion, Conexion.hayInternet(this@MainActivity))
 
-            // Sin internet puede fallar: en ese caso se usa lo guardado en el teléfono
-            val haySesion = try {
-                auth.haySesion()
-            } catch (e: Exception) {
-                cache.nombre() != null
-            }
-
-            if (!haySesion) {
-                layoutBienvenida.visibility = View.VISIBLE
-                layoutInicio.visibility = View.GONE
-            } else {
-                val nombre = try {
-                    auth.nombreUsuario().also { cache.guardarNombre(it) }
-                } catch (e: Exception) {
-                    cache.nombre() ?: "usuario"
+            when (estado) {
+                EstadoSesion.NINGUNA, EstadoSesion.REVOCADA -> {
+                    if (estado == EstadoSesion.REVOCADA) {
+                        sesion.borrar()
+                        cache.borrar()
+                        toast("Tu sesión expiró. Vuelve a iniciar sesión.")
+                    }
+                    layoutBienvenida.visibility = View.VISIBLE
+                    layoutInicio.visibility = View.GONE
                 }
-                tvSaludoInicio.text = "Hola, $nombre"
-                layoutBienvenida.visibility = View.GONE
-                layoutInicio.visibility = View.VISIBLE
+                else -> {
+                    if (estado == EstadoSesion.ACTIVA && !sesion.tieneLlave()) {
+                        runCatching { auth.crearLlave(sesion) }
+                    }
+                    tvSaludoInicio.text = "Hola, ${sesion.nombre()}"
+                    layoutBienvenida.visibility = View.GONE
+                    layoutInicio.visibility = View.VISIBLE
+
+                    // Con internet, actualiza el nombre por si cambió en otro dispositivo
+                    if (estado == EstadoSesion.ACTIVA) {
+                        runCatching { auth.nombreUsuario() }.onSuccess { nombre ->
+                            sesion.actualizarNombre(nombre)
+                            cache.guardarNombre(nombre)
+                            tvSaludoInicio.text = "Hola, $nombre"
+                        }
+                    }
+                }
             }
         }
     }

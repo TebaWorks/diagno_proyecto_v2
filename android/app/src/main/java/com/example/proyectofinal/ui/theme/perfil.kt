@@ -17,6 +17,9 @@ import androidx.lifecycle.lifecycleScope
 import com.example.proyectofinal.R
 import com.example.proyectofinal.data.repositorio.AuthRepositorio
 import com.example.proyectofinal.data.repositorio.CacheLocal
+import com.example.proyectofinal.data.repositorio.EstadoSesion
+import com.example.proyectofinal.data.repositorio.SesionLocal
+import com.example.proyectofinal.data.repositorio.mensajeErrorAuth
 import com.example.proyectofinal.data.repositorio.NotificacionLocal
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.launch
@@ -67,29 +70,33 @@ class perfil : ComponentActivity() {
         // El correo es el identificador de la cuenta en Supabase: solo lectura
         etCorreo.isEnabled = false
 
-        // Cargar datos del usuario desde Supabase (si no hay sesión, vuelve al inicio)
-        lifecycleScope.launch {
-            val cache = CacheLocal(this@perfil)
-            val haySesion = try {
-                auth.haySesion()
-            } catch (e: Exception) {
-                cache.nombre() != null
-            }
-            if (!haySesion) {
-                cerrarSesion()
-                return@launch
-            }
-            val nombre = try {
-                auth.nombreUsuario().also { cache.guardarNombre(it) }
-            } catch (e: Exception) {
-                cache.nombre() ?: "usuario"
-            }
-            val correo = auth.correoActual() ?: ""
+        // Cargar datos: primero lo guardado en el teléfono, luego Supabase si hay internet.
+        // La falta de internet NUNCA cierra la sesión.
+        val sesion = SesionLocal(this)
+
+        fun mostrar(nombre: String, correo: String) {
             tvNombre.text = nombre
             tvCorreo.text = correo
             tvIniciales.text = iniciales(nombre)
             etNombre.setText(nombre)
             etCorreo.setText(correo)
+        }
+
+        lifecycleScope.launch {
+            val estado = auth.estadoSesion(sesion, Conexion.hayInternet(this@perfil))
+            if (estado == EstadoSesion.NINGUNA || estado == EstadoSesion.REVOCADA) {
+                cerrarSesion()
+                return@launch
+            }
+            mostrar(sesion.nombre(), auth.correoActual() ?: "")
+
+            if (estado == EstadoSesion.ACTIVA) {
+                runCatching { auth.nombreUsuario() }.onSuccess { nombre ->
+                    sesion.actualizarNombre(nombre)
+                    CacheLocal(this@perfil).guardarNombre(nombre)
+                    mostrar(nombre, auth.correoActual() ?: "")
+                }
+            }
         }
 
         btnGuardar.setOnClickListener {
@@ -101,6 +108,8 @@ class perfil : ComponentActivity() {
                     etNombre.error = "Ingresa tu nombre"
                 nuevaPass.isNotEmpty() && nuevaPass.length < 8 ->
                     etPassword.error = "Mínimo 8 caracteres"
+                !Conexion.hayInternet(this) ->
+                    toast("Necesitas internet para guardar los cambios")
                 else -> {
                     btnGuardar.isEnabled = false
                     lifecycleScope.launch {
@@ -109,13 +118,15 @@ class perfil : ComponentActivity() {
                                 nuevoNombre,
                                 if (nuevaPass.isNotEmpty()) nuevaPass else null
                             )
+                            sesion.actualizarNombre(nuevoNombre)
+                            CacheLocal(this@perfil).guardarNombre(nuevoNombre)
                             tvNombre.text = nuevoNombre
                             tvIniciales.text = iniciales(nuevoNombre)
                             etPassword.text.clear()
                             toast("Cambios guardados")
                         } catch (e: Exception) {
                             Log.e("PERFIL", "No se pudo guardar", e)
-                            toast("No se pudo guardar: ${e.message}")
+                            toast(mensajeErrorAuth(e))
                         } finally {
                             btnGuardar.isEnabled = true
                         }
