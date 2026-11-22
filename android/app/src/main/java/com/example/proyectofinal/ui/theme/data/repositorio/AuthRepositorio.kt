@@ -5,6 +5,8 @@ import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.from
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 @Serializable
 private data class PerfilNuevoDto(
@@ -25,15 +27,30 @@ private data class PerfilNivelDto(
 
 class AuthRepositorio {
 
-    // Crea la cuenta en Supabase y guarda el nombre en la tabla perfil
-    suspend fun registrar(nombre: String, correo: String, clave: String) {
+    // Versión de la política de privacidad que acepta el usuario al registrarse
+    val VERSION_POLITICA = "1.0"
+
+    // Crea la cuenta. El perfil y el consentimiento los crea la base de datos (trigger)
+    // en la misma operación, así nunca queda una cuenta sin perfil.
+    suspend fun registrar(
+        nombre: String,
+        correo: String,
+        clave: String,
+        aceptaCompartir: Boolean = false
+    ) {
         supabase.auth.signUpWith(Email) {
             email = correo
             password = clave
+            data = buildJsonObject {
+                put("nombre", nombre)
+                put("acepta_privacidad", true)        // obligatorio para registrarse
+                put("acepta_compartir", aceptaCompartir)
+                put("version_politica", VERSION_POLITICA)
+            }
         }
-        val id = supabase.auth.currentUserOrNull()?.id
-            ?: throw IllegalStateException("No se pudo iniciar sesión después del registro")
-        supabase.from("perfil").insert(PerfilNuevoDto(id, nombre))
+        if (supabase.auth.currentUserOrNull() == null) {
+            throw IllegalStateException("No se pudo iniciar sesión después del registro")
+        }
     }
 
     // Inicia sesión; si la clave es incorrecta, lanza un error
