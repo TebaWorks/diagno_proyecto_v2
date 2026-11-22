@@ -1,0 +1,56 @@
+TÉRMINOS DE USO Y POLÍTICA DE PRIVACIDAD DE DIAGNO
+Versión 1.0 · Noviembre de 2026
+
+1. QUÉ ES DIAGNO
+Diagno es una aplicación de asistencia preventiva para la mantención de vehículos, desarrollada como Proyecto de Título en INACAP. Orienta al conductor para revisar su vehículo, entender lo que observa y anticipar fallas. Diagno NO reemplaza a un mecánico: ante cualquier situación de riesgo, la recomendación siempre es detenerse y acudir a un taller.
+
+Contacto y soporte: diagno.appfinal@gmail.com
+
+2. TÉRMINOS DE USO
+- Las respuestas de Diagno son orientativas y se basan en información técnica de referencia. No constituyen un diagnóstico profesional.
+- Ante testigos rojos, problemas de frenos, dirección, temperatura o presión de aceite, detén el vehículo en un lugar seguro y busca asistencia.
+- Tu cuenta es personal. Eres responsable de mantener tu contraseña en reserva.
+- No uses la app para fines distintos a la mantención de tu vehículo ni intentes vulnerar su funcionamiento.
+- Diagno es un prototipo académico y puede presentar fallas o interrupciones.
+
+3. QUÉ DATOS GUARDAMOS
+- Datos de cuenta: nombre y correo electrónico.
+- Tu nivel de conocimiento (novato, con conocimiento o avanzado).
+- Datos de tus vehículos: marca, modelo, año, combustible y kilometraje.
+- Mantenciones y chequeos que registres.
+- Las consultas que haces al asistente y sus respuestas.
+- Las fotografías que adjuntes a tus consultas.
+Nunca guardamos tu contraseña en el teléfono: la administra el servicio de autenticación de forma segura.
+
+4. PARA QUÉ LOS USAMOS
+Tus datos son para TU uso personal dentro de la app: mostrarte el estado de mantención de tu vehículo, responder tus consultas, guardar tu historial y permitirte usar la app sin internet. No los vendemos, no los usamos para publicidad y no los usamos para estudios.
+
+5. BASE COMUNITARIA (OPCIONAL)
+Si lo aceptas, las soluciones de tus consultas se pueden compartir con otros usuarios para que Diagno pueda ayudar a todos, incluso sin internet. Lo que se comparte es solo el problema y su solución, resumidos y SIN datos personales: nunca tu nombre, tu correo, tus fotos ni tus vehículos. Antes de publicarse, las soluciones se revisan. Puedes activar o desactivar esta opción cuando quieras desde tu Perfil.
+
+6. DÓNDE SE GUARDAN TUS DATOS
+- Tus datos se almacenan en los servidores de Supabase, en la región de São Paulo, Brasil.
+- Cuando consultas al asistente en línea, tu consulta se procesa con el servicio de inteligencia artificial de Google (Gemini) y, si hace falta, con un buscador web (Tavily).
+Esto implica una transferencia internacional de datos, que te informamos de forma expresa.
+
+7. CUÁNTO TIEMPO LOS GUARDAMOS
+Mientras tu cuenta exista. Si eliminas tu cuenta, se borran tus datos personales, vehículos, consultas y fotografías.
+
+8. CÓMO LOS PROTEGEMOS
+- Toda la comunicación viaja cifrada (HTTPS).
+- Cada usuario solo puede acceder a sus propios datos (control de acceso por usuario en la base de datos).
+- Las claves de los servicios externos se guardan en el servidor, nunca en la app.
+
+9. TUS DERECHOS
+De acuerdo con la normativa chilena de protección de datos personales (Ley N.° 19.628 y Ley N.° 21.719), puedes:
+- Acceder a tus datos y obtener una copia (portabilidad).
+- Rectificar los datos incorrectos.
+- Suprimir tus datos eliminando tu cuenta.
+- Oponerte al uso de tus datos en la base comunitaria.
+Puedes ejercerlos desde tu Perfil o escribiendo a diagno.appfinal@gmail.com. Responderemos dentro de los plazos legales.
+
+10. EDAD MÍNIMA
+Debes ser mayor de 18 años para crear una cuenta.
+
+11. CAMBIOS
+Si estos términos cambian, te lo avisaremos en la app y te pediremos aceptarlos nuevamente.

@@ -45,6 +45,9 @@
             android:name=".ui.theme.SinConexionActivity"
             android:exported="false" />
         <activity
+            android:name=".ui.theme.LegalActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.theme.crear_cuenta"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
