@@ -14,4 +14,8 @@
     <color name="azul">#1E6FE8</color>
     <color name="splash_fondo">#05080D</color>
     <color name="splash_azul">#2F8CFF</color>
+    <!-- Sistema visual Diagno -->
+    <color name="azul_oscuro">#1558C0</color>
+    <color name="borde">#D5DAE1</color>
+    <color name="error">#D93025</color>
 </resources>

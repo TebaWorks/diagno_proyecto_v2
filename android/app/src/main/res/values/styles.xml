@@ -89,4 +89,60 @@
     <style name="ImagenRedondeada">
         <item name="cornerSize">24dp</item>
     </style>
+
+    <!-- Estilo base vacío: los estilos "Diagno.xxx" lo usan como padre -->
+    <style name="Diagno" />
+
+    <!-- ===== Sistema visual de acceso (login y registro) ===== -->
+
+    <!-- Campo de texto con borde, etiqueta flotante y esquinas redondeadas -->
+    <style name="Diagno.Campo" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="boxStrokeColor">@color/azul</item>
+        <item name="hintTextColor">@color/azul</item>
+        <item name="boxStrokeErrorColor">@color/error</item>
+        <item name="errorTextColor">@color/error</item>
+    </style>
+
+    <!-- Botón principal azul -->
+    <style name="Diagno.BotonPrincipal" parent="Widget.Material3.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="backgroundTint">@color/azul</item>
+        <item name="cornerRadius">12dp</item>
+    </style>
+
+    <!-- Botón de solo texto (links) -->
+    <style name="Diagno.BotonTexto" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/azul</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Títulos y subtítulos de las pantallas de acceso -->
+    <style name="Diagno.Titulo">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/texto</item>
+        <item name="android:textSize">26sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Diagno.Subtitulo">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:textColor">@color/texto_sec</item>
+        <item name="android:textSize">15sp</item>
+    </style>
 </resources>
