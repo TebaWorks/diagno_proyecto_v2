@@ -45,6 +45,9 @@
             android:name=".ui.theme.SinConexionActivity"
             android:exported="false" />
         <activity
+            android:name=".ui.theme.VerificarCorreoActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.theme.LegalActivity"
             android:exported="false" />
         <activity

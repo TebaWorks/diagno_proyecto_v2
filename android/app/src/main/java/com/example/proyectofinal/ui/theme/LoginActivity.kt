@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.proyectofinal.R
 import com.example.proyectofinal.data.repositorio.AuthRepositorio
 import com.example.proyectofinal.data.repositorio.SesionLocal
+import com.example.proyectofinal.data.repositorio.esCorreoNoConfirmado
 import com.example.proyectofinal.data.repositorio.mensajeErrorAuth
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.progressindicator.CircularProgressIndicator
@@ -109,8 +110,16 @@ class LoginActivity : ComponentActivity() {
                 startActivity(intent)
             } catch (e: Exception) {
                 Log.e("LOGIN", "Error al iniciar sesión", e)
-                tilPassword.error = mensajeErrorAuth(e)
                 cargando(false)
+                if (esCorreoNoConfirmado(e)) {
+                    // Reenvía el código y lleva a la pantalla de verificación
+                    runCatching { AuthRepositorio().reenviarCodigoRegistro(correo) }
+                    val intent = Intent(this@LoginActivity, VerificarCorreoActivity::class.java)
+                    intent.putExtra(VerificarCorreoActivity.EXTRA_CORREO, correo)
+                    startActivity(intent)
+                } else {
+                    tilPassword.error = mensajeErrorAuth(e)
+                }
             }
         }
     }

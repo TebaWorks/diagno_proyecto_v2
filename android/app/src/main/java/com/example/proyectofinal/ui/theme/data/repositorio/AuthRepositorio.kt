@@ -1,5 +1,6 @@
 package com.example.proyectofinal.data.repositorio
 
+import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.from
@@ -7,13 +8,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-
-@Serializable
-private data class PerfilNuevoDto(
-    val id: String,
-    @SerialName("nombre_completo") val nombreCompleto: String,
-    @SerialName("nivel_conocimiento") val nivelConocimiento: String = "novato"
-)
 
 @Serializable
 private data class PerfilNombreDto(
@@ -32,12 +26,13 @@ class AuthRepositorio {
 
     // Crea la cuenta. El perfil y el consentimiento los crea la base de datos (trigger)
     // en la misma operación, así nunca queda una cuenta sin perfil.
+    // Devuelve true si la cuenta quedó pendiente de verificar el correo (Confirm email activo).
     suspend fun registrar(
         nombre: String,
         correo: String,
         clave: String,
         aceptaCompartir: Boolean = false
-    ) {
+    ): Boolean {
         supabase.auth.signUpWith(Email) {
             email = correo
             password = clave
@@ -48,9 +43,22 @@ class AuthRepositorio {
                 put("version_politica", VERSION_POLITICA)
             }
         }
-        if (supabase.auth.currentUserOrNull() == null) {
-            throw IllegalStateException("No se pudo iniciar sesión después del registro")
+        return supabase.auth.currentUserOrNull() == null
+    }
+
+    // Verifica el código que llegó al correo; si es correcto, deja la sesión iniciada
+    suspend fun verificarCodigoRegistro(correo: String, codigo: String) {
+        try {
+            supabase.auth.verifyEmailOtp(type = OtpType.Email.EMAIL, email = correo, token = codigo)
+        } catch (e: Exception) {
+            // Algunas versiones del servidor esperan el tipo "signup" para la confirmación
+            supabase.auth.verifyEmailOtp(type = OtpType.Email.SIGNUP, email = correo, token = codigo)
         }
+    }
+
+    // Envía un código nuevo de confirmación al correo
+    suspend fun reenviarCodigoRegistro(correo: String) {
+        supabase.auth.resendEmail(OtpType.Email.SIGNUP, correo)
     }
 
     // Inicia sesión; si la clave es incorrecta, lanza un error
@@ -93,7 +101,7 @@ class AuthRepositorio {
         }
     }
 
-    // NUEVO: actualiza el nombre en la tabla perfil y, si se indica, la contraseña
+    // Actualiza el nombre en la tabla perfil y, si se indica, la contraseña
     suspend fun actualizarPerfil(nombre: String, nuevaClave: String?) {
         val id = supabase.auth.currentUserOrNull()?.id
             ?: throw IllegalStateException("No hay sesión iniciada")
@@ -104,6 +112,7 @@ class AuthRepositorio {
             supabase.auth.updateUser { password = nuevaClave }
         }
     }
+
     // Crea o actualiza la llave local con los datos del usuario conectado
     suspend fun crearLlave(sesion: SesionLocal) {
         val id = supabase.auth.currentUserOrNull()?.id ?: return
@@ -127,6 +136,7 @@ class AuthRepositorio {
         }
     }
 }
+
 // ACTIVA: sesión válida en Supabase.
 // SIN_CONEXION: hay llave local, pero no hay internet para confirmar; se deja usar la app.
 // REVOCADA: hay internet y Supabase ya no reconoce la sesión; hay que volver a entrar.

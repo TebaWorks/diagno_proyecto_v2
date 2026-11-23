@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/verificarRaiz"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="24dp">
+
+        <ImageButton
+            android:id="@+id/btnVolverVerificar"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="-12dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Volver"
+            android:src="@drawable/ic_flecha_atras"
+            app:tint="@color/texto" />
+
+        <TextView
+            style="@style/Diagno.Titulo"
+            android:layout_marginTop="24dp"
+            android:text="Verifica tu correo" />
+
+        <TextView
+            android:id="@+id/tvCorreoDestino"
+            style="@style/Diagno.Subtitulo"
+            android:text="Te enviamos un código a tu correo" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilCodigo"
+            style="@style/Diagno.Campo"
+            android:layout_marginTop="28dp"
+            android:hint="Código de verificación">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etCodigo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:autofillHints="smsOTPCode"
+                android:gravity="center"
+                android:imeOptions="actionDone"
+                android:inputType="number"
+                android:letterSpacing="0.4"
+                android:maxLength="10"
+                android:maxLines="1"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Revisa también la carpeta de spam. El código vence en 1 hora."
+            android:textColor="@color/texto_sec"
+            android:textSize="13sp" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnVerificar"
+                style="@style/Diagno.BotonPrincipal"
+                android:text="Verificar" />
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/progresoVerificar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:elevation="8dp"
+                android:indeterminate="true"
+                android:visibility="gone"
+                app:indicatorColor="@android:color/white"
+                app:indicatorSize="24dp"
+                app:trackThickness="3dp" />
+        </FrameLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnReenviar"
+            style="@style/Diagno.BotonTexto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:text="Reenviar código" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCambiarCorreo"
+            style="@style/Diagno.BotonTexto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Usar otro correo" />
+    </LinearLayout>
+</ScrollView>
