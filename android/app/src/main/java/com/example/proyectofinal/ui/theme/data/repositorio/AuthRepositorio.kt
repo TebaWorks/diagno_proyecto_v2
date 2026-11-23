@@ -2,7 +2,9 @@ package com.example.proyectofinal.data.repositorio
 
 import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.auth.providers.builtin.IDToken
 import io.github.jan.supabase.postgrest.from
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -15,22 +17,29 @@ private data class PerfilNombreDto(
 )
 
 @Serializable
+private data class PerfilNivelDto(
+    @SerialName("nivel_conocimiento") val nivelConocimiento: String? = null
+)
+
+@Serializable
 private data class PerfilNivelElegidoDto(
     @SerialName("nivel_elegido_en") val nivelElegidoEn: String? = null
 )
 
 @Serializable
-private data class PerfilNivelDto(
-    @SerialName("nivel_conocimiento") val nivelConocimiento: String? = null
+private data class PerfilConsentimientoDto(
+    @SerialName("acepta_privacidad") val aceptaPrivacidad: Boolean = false,
+    @SerialName("version_politica") val versionPolitica: String? = null
 )
 
 class AuthRepositorio {
 
-    // Versión de la política de privacidad que acepta el usuario al registrarse
-    val VERSION_POLITICA = "1.0"
+    // Versión de la política de privacidad vigente
+    val VERSION_POLITICA = "1.1"
 
-    // Crea la cuenta. El perfil y el consentimiento los crea la base de datos (trigger)
-    // en la misma operación, así nunca queda una cuenta sin perfil.
+    // ===== Registro y verificación del correo =====
+
+    // Crea la cuenta. El perfil y el consentimiento los crea la base de datos (trigger).
     // Devuelve true si la cuenta quedó pendiente de verificar el correo (Confirm email activo).
     suspend fun registrar(
         nombre: String,
@@ -66,7 +75,8 @@ class AuthRepositorio {
         supabase.auth.resendEmail(OtpType.Email.SIGNUP, correo)
     }
 
-    // Inicia sesión; si la clave es incorrecta, lanza un error
+    // ===== Inicio y cierre de sesión =====
+
     suspend fun iniciarSesion(correo: String, clave: String) {
         supabase.auth.signInWith(Email) {
             email = correo
@@ -74,9 +84,17 @@ class AuthRepositorio {
         }
     }
 
+    // Inicia sesión con el token de Google; Supabase crea la cuenta si es la primera vez
+    suspend fun iniciarSesionConGoogle(idToken: String, nonce: String) {
+        supabase.auth.signInWith(IDToken) {
+            this.idToken = idToken
+            provider = Google
+            this.nonce = nonce
+        }
+    }
+
     suspend fun cerrarSesion() = supabase.auth.signOut()
 
-    // true si hay un usuario con sesión iniciada
     suspend fun haySesion(): Boolean {
         supabase.auth.awaitInitialization()
         return supabase.auth.currentUserOrNull() != null
@@ -84,20 +102,21 @@ class AuthRepositorio {
 
     fun correoActual(): String? = supabase.auth.currentUserOrNull()?.email
 
+    // ===== Perfil =====
+
     suspend fun nombreUsuario(): String {
         val id = supabase.auth.currentUserOrNull()?.id ?: return "usuario"
         return supabase.from("perfil").select { filter { eq("id", id) } }
             .decodeSingleOrNull<PerfilNombreDto>()?.nombreCompleto ?: "usuario"
     }
 
-    // Nivel de conocimiento guardado en la tabla perfil (null si no hay)
     suspend fun nivelActual(): String? {
         val id = supabase.auth.currentUserOrNull()?.id ?: return null
         return supabase.from("perfil").select { filter { eq("id", id) } }
             .decodeSingleOrNull<PerfilNivelDto>()?.nivelConocimiento
     }
 
-    // Guarda el nivel elegido ("novato", "con_conocimiento" o "avanzado") y marca que ya lo eligió
+    // Guarda el nivel ("novato", "con_conocimiento" o "avanzado") y marca que ya lo eligió
     suspend fun guardarNivel(nivel: String) {
         val id = supabase.auth.currentUserOrNull()?.id
             ?: throw IllegalStateException("No hay sesión iniciada")
@@ -116,7 +135,7 @@ class AuthRepositorio {
             .decodeSingleOrNull<PerfilNivelElegidoDto>()?.nivelElegidoEn == null
     }
 
-    // Actualiza el nombre en la tabla perfil y, si se indica, la contraseña
+    // Actualiza el nombre y, si se indica, la contraseña
     suspend fun actualizarPerfil(nombre: String, nuevaClave: String?) {
         val id = supabase.auth.currentUserOrNull()?.id
             ?: throw IllegalStateException("No hay sesión iniciada")
@@ -127,6 +146,32 @@ class AuthRepositorio {
             supabase.auth.updateUser { password = nuevaClave }
         }
     }
+
+    // ===== Consentimiento (Ley 21.719) =====
+
+    // true si no ha aceptado la política vigente (cuentas de Google o anteriores a la política)
+    suspend fun consentimientoPendiente(): Boolean {
+        val id = supabase.auth.currentUserOrNull()?.id ?: return false
+        val p = supabase.from("perfil").select { filter { eq("id", id) } }
+            .decodeSingleOrNull<PerfilConsentimientoDto>() ?: return true
+        return !p.aceptaPrivacidad || p.versionPolitica != VERSION_POLITICA
+    }
+
+    // Registra el consentimiento con su fecha y versión
+    suspend fun registrarConsentimiento(aceptaCompartir: Boolean) {
+        val id = supabase.auth.currentUserOrNull()?.id
+            ?: throw IllegalStateException("No hay sesión iniciada")
+        supabase.from("perfil").update({
+            set("acepta_privacidad", true)
+            set("acepta_compartir", aceptaCompartir)
+            set("version_politica", VERSION_POLITICA)
+            set("consentimiento_en", java.time.Instant.now().toString())
+        }) {
+            filter { eq("id", id) }
+        }
+    }
+
+    // ===== Llave de sesión =====
 
     // Crea o actualiza la llave local con los datos del usuario conectado
     suspend fun crearLlave(sesion: SesionLocal) {

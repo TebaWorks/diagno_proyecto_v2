@@ -14,10 +14,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.doAfterTextChanged
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.lifecycleScope
 import com.example.proyectofinal.R
 import com.example.proyectofinal.data.repositorio.AuthRepositorio
-import com.example.proyectofinal.data.repositorio.SesionLocal
+import com.example.proyectofinal.data.repositorio.GoogleAuth
 import com.example.proyectofinal.data.repositorio.esCorreoNoConfirmado
 import com.example.proyectofinal.data.repositorio.mensajeErrorAuth
 import com.google.android.material.button.MaterialButton
@@ -33,6 +35,7 @@ class LoginActivity : ComponentActivity() {
     private lateinit var etCorreo: TextInputEditText
     private lateinit var etPassword: TextInputEditText
     private lateinit var btnEntrar: MaterialButton
+    private lateinit var btnGoogle: MaterialButton
     private lateinit var progreso: CircularProgressIndicator
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,6 +55,7 @@ class LoginActivity : ComponentActivity() {
         etCorreo = findViewById(R.id.etLoginCorreo)
         etPassword = findViewById(R.id.etLoginPassword)
         btnEntrar = findViewById(R.id.btnEntrar)
+        btnGoogle = findViewById(R.id.btnGoogle)
         progreso = findViewById(R.id.progresoLogin)
 
         // Al escribir, se borra el error de ese campo
@@ -64,6 +68,7 @@ class LoginActivity : ComponentActivity() {
         }
 
         btnEntrar.setOnClickListener { intentarIngreso() }
+        btnGoogle.setOnClickListener { ingresarConGoogle() }
 
         findViewById<MaterialButton>(R.id.btnOlvideClave).setOnClickListener {
             Toast.makeText(this, "Recuperación de contraseña disponible pronto", Toast.LENGTH_SHORT).show()
@@ -76,11 +81,11 @@ class LoginActivity : ComponentActivity() {
         findViewById<ImageButton>(R.id.btnVolverLogin).setOnClickListener { finish() }
     }
 
+    // Inicio con correo y contraseña
     private fun intentarIngreso() {
         val correo = etCorreo.text?.toString()?.trim()?.lowercase().orEmpty()
         val pass = etPassword.text?.toString().orEmpty()
 
-        // Validación en la app, antes de ir a internet
         var valido = true
         if (!Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
             tilCorreo.error = "Ingresa un correo válido"
@@ -101,9 +106,8 @@ class LoginActivity : ComponentActivity() {
         cargando(true)
         lifecycleScope.launch {
             try {
-                val auth = AuthRepositorio()
-                auth.iniciarSesion(correo, pass)
-                continuarTrasIngreso()   // llave + nivel (solo la primera vez) o inicio
+                AuthRepositorio().iniciarSesion(correo, pass)
+                continuarTrasIngreso()   // consentimiento → nivel → inicio
             } catch (e: Exception) {
                 Log.e("LOGIN", "Error al iniciar sesión", e)
                 cargando(false)
@@ -120,9 +124,35 @@ class LoginActivity : ComponentActivity() {
         }
     }
 
+    // Inicio con Google (selector de cuentas del teléfono)
+    private fun ingresarConGoogle() {
+        if (!Conexion.hayInternet(this)) {
+            Toast.makeText(this, "Necesitas internet para iniciar sesión", Toast.LENGTH_LONG).show()
+            return
+        }
+        cargando(true)
+        lifecycleScope.launch {
+            try {
+                val google = GoogleAuth.obtenerToken(this@LoginActivity)
+                AuthRepositorio().iniciarSesionConGoogle(google.idToken, google.nonce)
+                continuarTrasIngreso()   // consentimiento → nivel → inicio
+            } catch (e: GetCredentialCancellationException) {
+                cargando(false)   // el usuario cerró el selector: no es un error
+            } catch (e: NoCredentialException) {
+                cargando(false)
+                Toast.makeText(this@LoginActivity, "No hay cuentas de Google en este teléfono", Toast.LENGTH_LONG).show()
+            } catch (e: Exception) {
+                Log.e("LOGIN", "Error con Google", e)
+                cargando(false)
+                Toast.makeText(this@LoginActivity, "No se pudo iniciar sesión con Google", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
     // Botón con indicador de carga; bloquea los campos mientras tanto
     private fun cargando(activo: Boolean) {
         btnEntrar.isEnabled = !activo
+        btnGoogle.isEnabled = !activo
         btnEntrar.text = if (activo) "" else "Iniciar sesión"
         progreso.visibility = if (activo) View.VISIBLE else View.GONE
         etCorreo.isEnabled = !activo

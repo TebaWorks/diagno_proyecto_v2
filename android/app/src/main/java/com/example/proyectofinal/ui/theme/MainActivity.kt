@@ -49,6 +49,28 @@ class MainActivity : ComponentActivity() {
             startActivity(Intent(this, crear_cuenta::class.java))
         }
 
+        // Continuar con Google desde la pantalla de acceso
+        val btnGoogle = findViewById<Button>(R.id.btnGoogleBienvenida)
+        btnGoogle.setOnClickListener {
+            if (!Conexion.hayInternet(this)) {
+                toast("Necesitas internet para iniciar sesión")
+                return@setOnClickListener
+            }
+            btnGoogle.isEnabled = false
+            btnGoogle.text = "Conectando…"
+            lifecycleScope.launch {
+                val error = ingresarConGoogle()
+                btnGoogle.isEnabled = true
+                btnGoogle.text = "Continuar con Google"
+                if (!error.isNullOrEmpty()) toast(error)
+            }
+        }
+
+        // Términos y privacidad
+        findViewById<View>(R.id.tvLegalBienvenida).setOnClickListener {
+            startActivity(Intent(this, LegalActivity::class.java))
+        }
+
         // Inicio
         findViewById<View>(R.id.cardChat).setOnClickListener {
             startActivity(Intent(this, chat_con_ia::class.java))

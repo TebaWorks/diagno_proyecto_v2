@@ -1,8 +1,8 @@
 <resources>
-    <string name="app_name">Proyecto final</string>
+    <string name="app_name">Diagno</string>
     <string name="crear_cuenta">Crear cuenta</string>
     <string name="iniciar_sesion">Iniciar sesión</string>
     <string name="hola_usuario">¡Hola, usuario!</string>
     <string name="registrarme">Registrarme</string>
-    <string name="volver">volver</string>
+    <string name="volver">Volver</string>
 </resources>

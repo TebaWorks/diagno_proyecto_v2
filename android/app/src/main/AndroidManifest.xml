@@ -11,7 +11,7 @@
         android:required="false" />
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -43,6 +43,9 @@
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".ui.theme.SinConexionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.theme.ConsentimientoActivity"
             android:exported="false" />
         <activity
             android:name=".ui.theme.VerificarCorreoActivity"

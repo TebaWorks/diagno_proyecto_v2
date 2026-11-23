@@ -5,49 +5,191 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- ===== BIENVENIDA (sin sesión) ===== -->
-    <FrameLayout
+    <!-- ===== ACCESO (sin sesión) ===== -->
+    <ScrollView
         android:id="@+id/layoutBienvenida"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:contentDescription="@null"
-            android:scaleType="centerCrop"
-            android:src="@drawable/app" />
+        android:layout_height="match_parent"
+        android:background="@android:color/white"
+        android:fillViewport="true"
+        android:fitsSystemWindows="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center"
+            android:gravity="center_horizontal"
             android:orientation="vertical"
             android:padding="24dp">
 
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:minHeight="24dp" />
+
+            <!-- Marca -->
+            <ImageView
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_nivel_engranaje"
+                app:tint="@color/azul" />
+
             <TextView
-                android:id="@+id/tvSaludo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                android:text="¡Hola, usuario!"
-                android:textColor="#1A2ECA"
-                android:textSize="30sp" />
+                android:layout_marginTop="12dp"
+                android:text="Diagno"
+                android:textColor="@color/texto"
+                android:textSize="32sp"
+                android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btnIniciarSesion"
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Iniciar sesión" />
+                android:layout_marginTop="4dp"
+                android:gravity="center"
+                android:text="Tu asistente preventivo para el auto"
+                android:textColor="@color/texto_sec"
+                android:textSize="16sp" />
 
-            <Button
+            <!-- Propuesta de valor -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                app:cardBackgroundColor="@color/fondo"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_bienv_ia" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:text="Pregunta a la IA sobre tu auto, con texto o fotos"
+                            android:textColor="@color/texto"
+                            android:textSize="15sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_bienv_guia" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:text="Lleva la mantención al día, sin olvidar nada"
+                            android:textColor="@color/texto"
+                            android:textSize="15sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_bienv_cuidado" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:text="Funciona incluso donde no hay señal"
+                            android:textColor="@color/texto"
+                            android:textSize="15sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:minHeight="32dp" />
+
+            <!-- Acciones -->
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCrearCuenta"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/Diagno.BotonPrincipal"
                 android:text="Crear cuenta" />
-        </LinearLayout>
-    </FrameLayout>
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnIniciarSesion"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:text="Ya tengo cuenta"
+                android:textAllCaps="false"
+                android:textColor="@color/azul"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/azul" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGoogleBienvenida"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:text="Continuar con Google"
+                android:textAllCaps="false"
+                android:textColor="@color/texto"
+                android:textSize="16sp"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/borde" />
+
+            <TextView
+                android:id="@+id/tvLegalBienvenida"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center"
+                android:padding="4dp"
+                android:text="Al continuar aceptas los Términos de uso y la Política de privacidad. Toca para leerlos."
+                android:textColor="@color/texto_sec"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </ScrollView>
     <!-- ===== INICIO (con sesión) ===== -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layoutInicio"

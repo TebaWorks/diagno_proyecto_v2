@@ -19,12 +19,13 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
 import com.example.proyectofinal.R
 import com.example.proyectofinal.data.repositorio.AuthRepositorio
-import com.example.proyectofinal.data.repositorio.SesionLocal
+import com.example.proyectofinal.data.repositorio.ValidacionCuenta
 import com.example.proyectofinal.data.repositorio.mensajeErrorAuth
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.progressindicator.LinearProgressIndicator
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
@@ -77,8 +78,21 @@ class crear_cuenta : ComponentActivity() {
         // Al escribir se limpia el error del campo
         etNombre.doAfterTextChanged { tilNombre.error = null }
         etCorreo.doAfterTextChanged { tilCorreo.error = null }
-        etPassword.doAfterTextChanged { tilPassword.error = null }
         etConfirmar.doAfterTextChanged { tilConfirmar.error = null }
+
+        // Indicador de fuerza de la contraseña mientras se escribe
+        etPassword.doAfterTextChanged { texto ->
+            tilPassword.error = null
+            val clave = texto?.toString().orEmpty()
+            tilPassword.helperText = when {
+                clave.isEmpty() -> "Mínimo 8 caracteres, con letras y números"
+                else -> when (ValidacionCuenta.fuerzaClave(clave)) {
+                    2 -> "Seguridad: fuerte"
+                    1 -> "Seguridad: media · agrega mayúsculas o símbolos"
+                    else -> "Seguridad: débil · usa más caracteres, mayúsculas y números"
+                }
+            }
+        }
 
         // El botón "Crear cuenta" solo se activa con los dos consentimientos obligatorios
         cbPrivacidad.setOnCheckedChangeListener { _, _ -> actualizarBoton() }
@@ -124,20 +138,35 @@ class crear_cuenta : ComponentActivity() {
 
     // Paso 1: validación local antes de avanzar
     private fun validarDatos() {
-        val nombre = etNombre.text?.toString()?.trim().orEmpty()
+        val nombre = etNombre.text?.toString()?.trim()?.replace(Regex("\\s+"), " ").orEmpty()
         val correo = etCorreo.text?.toString()?.trim()?.lowercase().orEmpty()
         val pass = etPassword.text?.toString().orEmpty()
         val confirmar = etConfirmar.text?.toString().orEmpty()
 
         var valido = true
-        if (nombre.length < 2) { tilNombre.error = "Ingresa tu nombre"; valido = false }
-        if (!Patterns.EMAIL_ADDRESS.matcher(correo).matches()) { tilCorreo.error = "Ingresa un correo válido"; valido = false }
+        if (!ValidacionCuenta.nombreValido(nombre)) {
+            tilNombre.error = "Usa solo letras (entre 2 y 50 caracteres)"; valido = false
+        }
+        if (!Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
+            tilCorreo.error = "Ingresa un correo válido"; valido = false
+        } else if (ValidacionCuenta.esDesechable(correo)) {
+            tilCorreo.error = "No se aceptan correos temporales"; valido = false
+        } else {
+            ValidacionCuenta.sugerenciaCorreo(correo)?.let { sugerido ->
+                tilCorreo.error = "¿Quisiste decir $sugerido?"
+                Snackbar.make(findViewById(R.id.registroRaiz), "¿Quisiste decir $sugerido?", Snackbar.LENGTH_LONG)
+                    .setAction("Corregir") { etCorreo.setText(sugerido) }
+                    .show()
+                valido = false
+            }
+        }
         if (pass.length < MIN_CLAVE || !pass.any { it.isLetter() } || !pass.any { it.isDigit() }) {
             tilPassword.error = "Mínimo $MIN_CLAVE caracteres, con letras y números"; valido = false
         }
         if (confirmar != pass) { tilConfirmar.error = "Las contraseñas no coinciden"; valido = false }
 
         if (valido) {
+            etNombre.setText(nombre)   // guarda el nombre sin espacios dobles
             ocultarTeclado()
             mostrarPaso(2)
         }

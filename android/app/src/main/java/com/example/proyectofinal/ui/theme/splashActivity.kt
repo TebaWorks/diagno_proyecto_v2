@@ -47,14 +47,8 @@ class SplashActivity : ComponentActivity() {
                     EstadoSesion.ACTIVA -> {
                         // Usuarios que iniciaron sesión antes de existir la llave
                         if (!sesion.tieneLlave()) runCatching { auth.crearLlave(sesion) }
-                        // Si nunca eligió su nivel (salió antes de elegir), se lo pide
-                        if (sesion.nivelConfirmado()) {
-                            MainActivity::class.java
-                        } else {
-                            val pendiente = runCatching { auth.nivelPendiente() }.getOrDefault(false)
-                            if (pendiente) NivelActivity::class.java
-                            else { sesion.confirmarNivel(); MainActivity::class.java }
-                        }
+                        // Consentimiento → nivel → inicio
+                        destinoSegunPerfil(auth, sesion)
                     }
                     EstadoSesion.SIN_CONEXION -> MainActivity::class.java
                     EstadoSesion.REVOCADA -> {

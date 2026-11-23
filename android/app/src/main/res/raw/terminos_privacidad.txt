@@ -1,5 +1,5 @@
 TÉRMINOS DE USO Y POLÍTICA DE PRIVACIDAD DE DIAGNO
-Versión 1.0 · Noviembre de 2026
+Versión 1.1 · Noviembre de 2026
 
 1. QUÉ ES DIAGNO
 Diagno es una aplicación de asistencia preventiva para la mantención de vehículos, desarrollada como Proyecto de Título en INACAP. Orienta al conductor para revisar su vehículo, entender lo que observa y anticipar fallas. Diagno NO reemplaza a un mecánico: ante cualquier situación de riesgo, la recomendación siempre es detenerse y acudir a un taller.
@@ -21,6 +21,7 @@ Contacto y soporte: diagno.appfinal@gmail.com
 - Las consultas que haces al asistente y sus respuestas.
 - Las fotografías que adjuntes a tus consultas.
 Nunca guardamos tu contraseña en el teléfono: la administra el servicio de autenticación de forma segura.
+Si ingresas con Google, Google nos entrega solo tu nombre y tu correo electrónico. No accedemos a tus contactos, fotos, correos ni a ningún otro dato de tu cuenta de Google. Puedes quitar el acceso de Diagno en cualquier momento desde la configuración de seguridad de tu cuenta de Google.
 
 4. PARA QUÉ LOS USAMOS
 Tus datos son para TU uso personal dentro de la app: mostrarte el estado de mantención de tu vehículo, responder tus consultas, guardar tu historial y permitirte usar la app sin internet. No los vendemos, no los usamos para publicidad y no los usamos para estudios.
@@ -31,6 +32,7 @@ Si lo aceptas, las soluciones de tus consultas se pueden compartir con otros usu
 6. DÓNDE SE GUARDAN TUS DATOS
 - Tus datos se almacenan en los servidores de Supabase, en la región de São Paulo, Brasil.
 - Cuando consultas al asistente en línea, tu consulta se procesa con el servicio de inteligencia artificial de Google (Gemini) y, si hace falta, con un buscador web (Tavily).
+- Los códigos de verificación se envían a tu correo desde diagno.appfinal@gmail.com, mediante el servicio de correo de Google.
 Esto implica una transferencia internacional de datos, que te informamos de forma expresa.
 
 7. CUÁNTO TIEMPO LOS GUARDAMOS

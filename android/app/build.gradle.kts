@@ -69,6 +69,11 @@ dependencies {
     implementation("io.ktor:ktor-client-android:3.4.3")
     implementation("io.github.jan-tennert.supabase:functions-kt")
 
+    // Inicio de sesión con Google (Credential Manager)
+    implementation("androidx.credentials:credentials:1.5.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.5.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
     // CameraX (cámara del chat con IA)
     implementation("androidx.camera:camera-core:1.6.1")
     implementation("androidx.camera:camera-camera2:1.6.1")

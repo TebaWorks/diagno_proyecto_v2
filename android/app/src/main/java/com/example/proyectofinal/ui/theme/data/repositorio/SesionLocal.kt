@@ -8,8 +8,8 @@ import android.content.Context
  * Una vez iniciada la sesión, la app sigue siendo usable sin internet mientras
  * exista esta llave. Solo se borra cuando el usuario cierra sesión o elimina su cuenta.
  *
- * Minimización de datos (Ley 21.719): solo se guarda el id del usuario, su nombre
- * y su nivel. Nunca la contraseña ni el token; el token lo administra Supabase.
+ * Minimización de datos (Ley 21.719): solo se guarda el id del usuario, su nombre,
+ * su nivel y dos marcas de estado. Nunca la contraseña ni el token.
  */
 class SesionLocal(context: Context) {
 
@@ -41,9 +41,14 @@ class SesionLocal(context: Context) {
     fun nivel(): String = prefs.getString(CLAVE_NIVEL, null) ?: "novato"
 
     // true cuando el usuario ya eligió su nivel (para no volver a preguntarle)
-    fun confirmarNivel() = prefs.edit().putBoolean("nivel_confirmado", true).apply()
+    fun confirmarNivel() = prefs.edit().putBoolean(CLAVE_NIVEL_OK, true).apply()
 
-    fun nivelConfirmado(): Boolean = prefs.getBoolean("nivel_confirmado", false)
+    fun nivelConfirmado(): Boolean = prefs.getBoolean(CLAVE_NIVEL_OK, false)
+
+    // true cuando el usuario ya aceptó la política vigente
+    fun confirmarConsentimiento() = prefs.edit().putBoolean(CLAVE_CONSENTIMIENTO_OK, true).apply()
+
+    fun consentimientoConfirmado(): Boolean = prefs.getBoolean(CLAVE_CONSENTIMIENTO_OK, false)
 
     // Se llama solo al cerrar sesión o eliminar la cuenta
     fun borrar() = prefs.edit().clear().apply()
@@ -52,5 +57,7 @@ class SesionLocal(context: Context) {
         const val CLAVE_ID = "usuario_id"
         const val CLAVE_NOMBRE = "nombre"
         const val CLAVE_NIVEL = "nivel"
+        const val CLAVE_NIVEL_OK = "nivel_confirmado"
+        const val CLAVE_CONSENTIMIENTO_OK = "consentimiento_ok_v1_1"
     }
 }

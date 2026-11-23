@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/consentimientoRaiz"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="32dp"
+        android:paddingBottom="24dp">
+
+        <TextView
+            style="@style/Diagno.Titulo"
+            android:text="Tus datos, tu decisión" />
+
+        <TextView
+            style="@style/Diagno.Subtitulo"
+            android:text="Antes de continuar, lee y acepta cómo cuidamos tu información" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            app:cardBackgroundColor="@color/fondo"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="3dp"
+                android:padding="16dp"
+                android:text="Tus datos (cuenta, vehículos, consultas y fotos) se guardan solo para tu uso personal dentro de Diagno. No los vendemos ni los usamos para publicidad o estudios. Se almacenan en Brasil y tus consultas se procesan con servicios de Google."
+                android:textColor="@color/texto"
+                android:textSize="14sp" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLeerPoliticaC"
+            style="@style/Diagno.BotonTexto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="-12dp"
+            android:text="Leer Términos y Política de privacidad" />
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/cbPrivacidadC"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Acepto los Términos de uso y la Política de privacidad (obligatorio)"
+            android:textColor="@color/texto"
+            app:buttonTint="@color/azul" />
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/cbMayorEdadC"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Declaro ser mayor de 18 años (obligatorio)"
+            android:textColor="@color/texto"
+            app:buttonTint="@color/azul" />
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/cbCompartirC"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Quiero que las soluciones de mis consultas, sin datos personales, ayuden a otros usuarios (opcional)"
+            android:textColor="@color/texto"
+            app:buttonTint="@color/azul" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAceptarC"
+                style="@style/Diagno.BotonPrincipal"
+                android:enabled="false"
+                android:text="Aceptar y continuar" />
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/progresoC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:elevation="8dp"
+                android:indeterminate="true"
+                android:visibility="gone"
+                app:indicatorColor="@android:color/white"
+                app:indicatorSize="24dp"
+                app:trackThickness="3dp" />
+        </FrameLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRechazarC"
+            style="@style/Diagno.BotonTexto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="12dp"
+            android:text="No acepto, cerrar sesión" />
+    </LinearLayout>
+</ScrollView>
