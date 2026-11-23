@@ -8,6 +8,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -18,7 +19,8 @@ import com.example.proyectofinal.data.repositorio.SesionLocal
 import com.example.proyectofinal.data.repositorio.mensajeErrorAuth
 import kotlinx.coroutines.launch
 
-// Pantalla "Selección de nivel": va después del login y antes del inicio/perfil
+// Selección de nivel: se muestra UNA sola vez, después del primer ingreso.
+// Para cambiar el nivel después, se usa Configuración.
 class NivelActivity : ComponentActivity() {
 
     private val auth = AuthRepositorio()
@@ -65,25 +67,24 @@ class NivelActivity : ComponentActivity() {
         )
         opciones.forEach { op -> op.card.setOnClickListener { seleccionar(op.valor) } }
 
-        // Preselecciona el nivel guardado en el teléfono y luego el de Supabase
         seleccionar(sesion.nivel())
-        lifecycleScope.launch {
-            try {
-                auth.nivelActual()?.let { seleccionar(it) }
-            } catch (e: Exception) {
-                Log.e("NIVEL", "No se pudo leer el nivel", e)
-            }
-        }
 
         val btnContinuar = findViewById<TextView>(R.id.btnContinuarNivel)
         btnContinuar.setOnClickListener {
+            if (!Conexion.hayInternet(this)) {
+                Toast.makeText(this, "Necesitas internet para guardar tu nivel", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
             btnContinuar.isEnabled = false
             btnContinuar.alpha = 0.6f
             lifecycleScope.launch {
                 try {
                     auth.guardarNivel(nivel)
                     sesion.actualizarNivel(nivel)
-                    irAlInicio()
+                    sesion.confirmarNivel()
+                    val intent = Intent(this@NivelActivity, MainActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
                 } catch (e: Exception) {
                     Log.e("NIVEL", "No se pudo guardar el nivel", e)
                     Toast.makeText(this@NivelActivity, mensajeErrorAuth(e), Toast.LENGTH_LONG).show()
@@ -93,16 +94,9 @@ class NivelActivity : ComponentActivity() {
             }
         }
 
-        // La flecha cancela el ingreso: cierra la sesión, borra la llave y vuelve a la bienvenida
-        findViewById<View>(R.id.btnVolverNivel).setOnClickListener {
-            lifecycleScope.launch {
-                try { auth.cerrarSesion() } catch (e: Exception) {
-                    Log.e("NIVEL", "Error al cerrar sesión", e)
-                }
-                sesion.borrar()
-                irAlInicio()
-            }
-        }
+        // Atrás SALE de la app sin cerrar la sesión; al volver, se pide el nivel de nuevo
+        findViewById<View>(R.id.btnVolverNivel).visibility = View.GONE
+        onBackPressedDispatcher.addCallback(this) { finishAffinity() }
     }
 
     private fun seleccionar(valor: String) {
@@ -118,12 +112,5 @@ class NivelActivity : ComponentActivity() {
             )
             op.radio.setImageResource(if (activo) R.drawable.ic_radio_on else R.drawable.ic_radio_off)
         }
-    }
-
-    // MainActivity decide si muestra bienvenida o inicio según la sesión
-    private fun irAlInicio() {
-        val intent = Intent(this, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
     }
 }

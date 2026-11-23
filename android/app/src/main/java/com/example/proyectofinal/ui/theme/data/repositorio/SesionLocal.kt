@@ -40,6 +40,11 @@ class SesionLocal(context: Context) {
 
     fun nivel(): String = prefs.getString(CLAVE_NIVEL, null) ?: "novato"
 
+    // true cuando el usuario ya eligió su nivel (para no volver a preguntarle)
+    fun confirmarNivel() = prefs.edit().putBoolean("nivel_confirmado", true).apply()
+
+    fun nivelConfirmado(): Boolean = prefs.getBoolean("nivel_confirmado", false)
+
     // Se llama solo al cerrar sesión o eliminar la cuenta
     fun borrar() = prefs.edit().clear().apply()
 

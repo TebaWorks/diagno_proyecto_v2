@@ -103,11 +103,7 @@ class LoginActivity : ComponentActivity() {
             try {
                 val auth = AuthRepositorio()
                 auth.iniciarSesion(correo, pass)
-                auth.crearLlave(SesionLocal(this@LoginActivity))   // llave de acceso
-
-                val intent = Intent(this@LoginActivity, NivelActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
+                continuarTrasIngreso()   // llave + nivel (solo la primera vez) o inicio
             } catch (e: Exception) {
                 Log.e("LOGIN", "Error al iniciar sesión", e)
                 cargando(false)

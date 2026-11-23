@@ -95,12 +95,8 @@ class VerificarCorreoActivity : ComponentActivity() {
         lifecycleScope.launch {
             try {
                 auth.verificarCodigoRegistro(correo, codigo)
-                auth.crearLlave(SesionLocal(this@VerificarCorreoActivity))
-
                 Toast.makeText(this@VerificarCorreoActivity, "¡Correo verificado!", Toast.LENGTH_SHORT).show()
-                val intent = Intent(this@VerificarCorreoActivity, NivelActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
+                continuarTrasIngreso()
             } catch (e: Exception) {
                 Log.e("VERIFICAR", "Código rechazado", e)
                 tilCodigo.error = mensajeErrorAuth(e)

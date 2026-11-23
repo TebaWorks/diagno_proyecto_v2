@@ -169,11 +169,8 @@ class crear_cuenta : ComponentActivity() {
                     cargando(false)
                 } else {
                     // Confirm email desactivado: la cuenta queda lista de inmediato
-                    auth.crearLlave(SesionLocal(this@crear_cuenta))
                     Toast.makeText(this@crear_cuenta, "¡Cuenta creada! Bienvenido, $nombre", Toast.LENGTH_SHORT).show()
-                    val intent = Intent(this@crear_cuenta, NivelActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    startActivity(intent)
+                    continuarTrasIngreso()
                 }
             } catch (e: Exception) {
                 Log.e("REGISTRO", "Registro falló", e)

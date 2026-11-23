@@ -17,6 +17,7 @@ import com.example.proyectofinal.data.repositorio.CacheLocal
 import com.example.proyectofinal.data.repositorio.NotificacionLocal
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
+import com.example.proyectofinal.data.repositorio.SesionLocal
 
 // Pantalla "Configuración": se abre desde la fila "Configuración" de Perfil
 class ConfiguracionActivity : ComponentActivity() {
@@ -88,6 +89,7 @@ class ConfiguracionActivity : ComponentActivity() {
         lifecycleScope.launch {
             try {
                 auth.guardarNivel(nuevo)
+                SesionLocal(this@ConfiguracionActivity).actualizarNivel(nuevo)
                 nivel = nuevo
                 mostrarNivel()
                 Toast.makeText(this@ConfiguracionActivity, "Nivel actualizado", Toast.LENGTH_SHORT).show()

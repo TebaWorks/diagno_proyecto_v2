@@ -15,6 +15,11 @@ private data class PerfilNombreDto(
 )
 
 @Serializable
+private data class PerfilNivelElegidoDto(
+    @SerialName("nivel_elegido_en") val nivelElegidoEn: String? = null
+)
+
+@Serializable
 private data class PerfilNivelDto(
     @SerialName("nivel_conocimiento") val nivelConocimiento: String? = null
 )
@@ -92,13 +97,23 @@ class AuthRepositorio {
             .decodeSingleOrNull<PerfilNivelDto>()?.nivelConocimiento
     }
 
-    // Guarda el nivel elegido: "novato", "con_conocimiento" o "avanzado"
+    // Guarda el nivel elegido ("novato", "con_conocimiento" o "avanzado") y marca que ya lo eligió
     suspend fun guardarNivel(nivel: String) {
         val id = supabase.auth.currentUserOrNull()?.id
             ?: throw IllegalStateException("No hay sesión iniciada")
-        supabase.from("perfil").update({ set("nivel_conocimiento", nivel) }) {
+        supabase.from("perfil").update({
+            set("nivel_conocimiento", nivel)
+            set("nivel_elegido_en", java.time.Instant.now().toString())
+        }) {
             filter { eq("id", id) }
         }
+    }
+
+    // true si el usuario todavía no elige su nivel (primer ingreso)
+    suspend fun nivelPendiente(): Boolean {
+        val id = supabase.auth.currentUserOrNull()?.id ?: return false
+        return supabase.from("perfil").select { filter { eq("id", id) } }
+            .decodeSingleOrNull<PerfilNivelElegidoDto>()?.nivelElegidoEn == null
     }
 
     // Actualiza el nombre en la tabla perfil y, si se indica, la contraseña
