@@ -10,6 +10,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import io.github.jan.supabase.functions.functions
 
 @Serializable
 private data class PerfilNombreDto(
@@ -19,6 +20,11 @@ private data class PerfilNombreDto(
 @Serializable
 private data class PerfilNivelDto(
     @SerialName("nivel_conocimiento") val nivelConocimiento: String? = null
+)
+
+@Serializable
+private data class PerfilCompartirDto(
+    @SerialName("acepta_compartir") val aceptaCompartir: Boolean = false
 )
 
 @Serializable
@@ -73,6 +79,24 @@ class AuthRepositorio {
     // Envía un código nuevo de confirmación al correo
     suspend fun reenviarCodigoRegistro(correo: String) {
         supabase.auth.resendEmail(OtpType.Email.SIGNUP, correo)
+    }
+
+    // ===== Recuperación de contraseña =====
+
+    // Envía el código de recuperación (no revela si el correo existe)
+    suspend fun enviarCodigoRecuperacion(correo: String) {
+        supabase.auth.resetPasswordForEmail(correo)
+    }
+
+    // Verifica el código: si es correcto, abre una sesión temporal solo para cambiar la clave
+    suspend fun verificarCodigoRecuperacion(correo: String, codigo: String) {
+        supabase.auth.verifyEmailOtp(type = OtpType.Email.RECOVERY, email = correo, token = codigo)
+    }
+
+    // Guarda la contraseña nueva y cierra la sesión temporal: el usuario debe entrar de nuevo
+    suspend fun cambiarClaveRecuperada(nuevaClave: String) {
+        supabase.auth.updateUser { password = nuevaClave }
+        runCatching { supabase.auth.signOut() }
     }
 
     // ===== Inicio y cierre de sesión =====
@@ -169,6 +193,32 @@ class AuthRepositorio {
         }) {
             filter { eq("id", id) }
         }
+    }
+
+    // true si el usuario aceptó compartir soluciones anonimizadas
+    suspend fun aceptaCompartir(): Boolean {
+        val id = supabase.auth.currentUserOrNull()?.id ?: return false
+        return supabase.from("perfil").select { filter { eq("id", id) } }
+            .decodeSingleOrNull<PerfilCompartirDto>()?.aceptaCompartir ?: false
+    }
+
+    // Cambia el consentimiento opcional (derecho de oposición)
+    suspend fun actualizarCompartir(valor: Boolean) {
+        val id = supabase.auth.currentUserOrNull()?.id
+            ?: throw IllegalStateException("No hay sesión iniciada")
+        supabase.from("perfil").update({ set("acepta_compartir", valor) }) {
+            filter { eq("id", id) }
+        }
+    }
+
+    // Elimina la cuenta en el servidor (derecho de supresión) y cierra la sesión local
+    suspend fun eliminarCuenta() {
+        supabase.functions.invoke(
+            function = "eliminar-cuenta",
+            body = buildJsonObject { put("confirmacion", "ELIMINAR") }
+        )
+        runCatching { supabase.auth.signOut() }
+        runCatching { supabase.auth.clearSession() }
     }
 
     // ===== Llave de sesión =====

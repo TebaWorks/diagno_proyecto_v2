@@ -70,8 +70,14 @@ class LoginActivity : ComponentActivity() {
         btnEntrar.setOnClickListener { intentarIngreso() }
         btnGoogle.setOnClickListener { ingresarConGoogle() }
 
+        // ¿Olvidaste tu contraseña? → pantalla de recuperación con el correo ya escrito
         findViewById<MaterialButton>(R.id.btnOlvideClave).setOnClickListener {
-            Toast.makeText(this, "Recuperación de contraseña disponible pronto", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, RecuperarClaveActivity::class.java)
+            intent.putExtra(
+                RecuperarClaveActivity.EXTRA_CORREO,
+                etCorreo.text?.toString()?.trim()?.lowercase().orEmpty()
+            )
+            startActivity(intent)
         }
 
         findViewById<MaterialButton>(R.id.btnIrCrearCuenta).setOnClickListener {

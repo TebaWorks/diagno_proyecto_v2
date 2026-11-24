@@ -326,6 +326,81 @@
                         android:layout_marginStart="56dp"
                         android:background="@color/fondo" />
 
+                    <!-- Compartir soluciones (consentimiento opcional) -->
+                    <LinearLayout
+                        style="@style/FilaPerfil"
+                        android:clickable="false"
+                        android:focusable="false">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_perfil_offline"
+                            app:tint="@color/texto_sec" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Compartir soluciones"
+                                android:textColor="@color/texto"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Sin datos personales, para ayudar a otros"
+                                android:textColor="@color/texto_sec"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/switchCompartir"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:thumbTint="@color/white"
+                            app:trackTint="@color/switch_track" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginStart="56dp"
+                        android:background="@color/fondo" />
+
+                    <!-- Términos y privacidad -->
+                    <LinearLayout
+                        android:id="@+id/filaPrivacidad"
+                        style="@style/FilaPerfil">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@android:drawable/ic_menu_info_details"
+                            app:tint="@color/texto_sec" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:layout_weight="1"
+                            android:text="Términos y privacidad"
+                            android:textColor="@color/texto"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginStart="56dp"
+                        android:background="@color/fondo" />
+
                     <!-- Cerrar sesión -->
                     <LinearLayout
                         android:id="@+id/filaCerrarSesion"
@@ -343,6 +418,32 @@
                             android:layout_marginStart="16dp"
                             android:layout_weight="1"
                             android:text="Cerrar sesión"
+                            android:textColor="#D32F2F"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginStart="56dp"
+                        android:background="@color/fondo" />
+
+                    <!-- Eliminar cuenta (derecho de supresión) -->
+                    <LinearLayout
+                        android:id="@+id/filaEliminarCuenta"
+                        style="@style/FilaPerfil">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@android:drawable/ic_menu_delete"
+                            app:tint="#D32F2F" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:layout_weight="1"
+                            android:text="Eliminar mi cuenta"
                             android:textColor="#D32F2F"
                             android:textSize="16sp" />
                     </LinearLayout>

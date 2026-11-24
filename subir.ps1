@@ -1,6 +1,6 @@
 ﻿param([string]$mensaje = "Actualiza la función chat")
 
-npx supabase functions deploy chat --project-ref utqtxuxdizxavagckblf --use-api
+npx supabase functions deploy --project-ref utqtxuxdizxavagckblf --use-api
 if ($LASTEXITCODE -ne 0) { Write-Host "Falló el despliegue: no se sube nada." -ForegroundColor Red; exit 1 }
 
 git add .

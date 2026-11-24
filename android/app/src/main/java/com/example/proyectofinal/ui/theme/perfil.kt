@@ -23,7 +23,9 @@ import com.example.proyectofinal.data.repositorio.mensajeErrorAuth
 import com.example.proyectofinal.data.repositorio.NotificacionLocal
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.launch
-
+import android.text.InputType
+import android.widget.FrameLayout
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 class perfil : ComponentActivity() {
 
     private val auth = AuthRepositorio()
@@ -49,6 +51,37 @@ class perfil : ComponentActivity() {
         val tvEditar = findViewById<TextView>(R.id.tvEditar)
         val cardEditar = findViewById<View>(R.id.cardEditar)
         val switchOffline = findViewById<MaterialSwitch>(R.id.switchOffline)
+
+        // ===== Privacidad (Ley 21.719) =====
+
+        // Consentimiento opcional: se carga el valor actual y luego se escucha el cambio
+        val switchCompartir = findViewById<MaterialSwitch>(R.id.switchCompartir)
+        lifecycleScope.launch {
+            runCatching { auth.aceptaCompartir() }.onSuccess { switchCompartir.isChecked = it }
+            switchCompartir.setOnCheckedChangeListener { boton, activado ->
+                if (!Conexion.hayInternet(this@perfil)) {
+                    boton.isChecked = !activado
+                    toast("Necesitas internet para cambiar esta opción")
+                    return@setOnCheckedChangeListener
+                }
+                lifecycleScope.launch {
+                    try {
+                        auth.actualizarCompartir(activado)
+                        toast(if (activado) "Tus soluciones podrán ayudar a otros usuarios" else "Ya no se compartirán tus soluciones")
+                    } catch (e: Exception) {
+                        Log.e("PERFIL", "No se pudo cambiar el consentimiento", e)
+                        boton.isChecked = !activado
+                        toast(mensajeErrorAuth(e))
+                    }
+                }
+            }
+        }
+
+        findViewById<View>(R.id.filaPrivacidad).setOnClickListener {
+            startActivity(Intent(this, LegalActivity::class.java))
+        }
+
+        findViewById<View>(R.id.filaEliminarCuenta).setOnClickListener { confirmarEliminarCuenta() }
 
         findViewById<View>(R.id.btnVolverPerfil).setOnClickListener { finish() }
 
@@ -174,6 +207,56 @@ class perfil : ComponentActivity() {
 
     private fun abrirVehiculos() {
         startActivity(Intent(this, VehiculoActivity::class.java))
+    }
+
+    // Pide confirmación escrita antes de borrar la cuenta de forma permanente
+    private fun confirmarEliminarCuenta() {
+        val campo = EditText(this).apply {
+            hint = "Escribe ELIMINAR"
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
+        }
+        val margen = (20 * resources.displayMetrics.density).toInt()
+        val contenedor = FrameLayout(this).apply {
+            setPadding(margen, margen / 2, margen, 0)
+            addView(campo)
+        }
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Eliminar mi cuenta")
+            .setMessage(
+                "Se borrarán de forma permanente tu cuenta, tus vehículos, tus consultas, " +
+                        "tus fotos y tus fichas guardadas. Esta acción no se puede deshacer.\n\n" +
+                        "Para confirmar, escribe ELIMINAR."
+            )
+            .setView(contenedor)
+            .setNegativeButton("Cancelar", null)
+            .setPositiveButton("Eliminar") { _, _ ->
+                if (campo.text.toString().trim() == "ELIMINAR") eliminarCuenta()
+                else toast("No se eliminó: debes escribir ELIMINAR")
+            }
+            .show()
+    }
+
+    // Borra la cuenta en el servidor y todos los datos guardados en el teléfono
+    private fun eliminarCuenta() {
+        if (!Conexion.hayInternet(this)) {
+            toast("Necesitas internet para eliminar tu cuenta")
+            return
+        }
+        lifecycleScope.launch {
+            try {
+                auth.eliminarCuenta()
+                CacheLocal(this@perfil).borrar()
+                NotificacionLocal(this@perfil).borrar()
+                SesionLocal(this@perfil).borrar()
+                toast("Tu cuenta fue eliminada")
+                val intent = Intent(this@perfil, MainActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("PERFIL", "No se pudo eliminar la cuenta", e)
+                toast("No se pudo eliminar la cuenta. Intenta de nuevo.")
+            }
+        }
     }
 
     // Cierra la sesión en Supabase y vuelve a la pantalla de bienvenida

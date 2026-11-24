@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/recuperarRaiz"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="24dp">
+
+        <ImageButton
+            android:id="@+id/btnVolverRecuperar"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="-12dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Volver"
+            android:src="@drawable/ic_flecha_atras"
+            app:tint="@color/texto" />
+
+        <TextView
+            android:id="@+id/tvPasoRecuperar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Paso 1 de 3"
+            android:textColor="@color/azul"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvTituloRecuperar"
+            style="@style/Diagno.Titulo"
+            android:layout_marginTop="12dp"
+            android:text="Recupera tu contraseña" />
+
+        <TextView
+            android:id="@+id/tvSubtituloRecuperar"
+            style="@style/Diagno.Subtitulo"
+            android:text="Escribe tu correo y te enviaremos un código" />
+
+        <!-- ===== PASO 1: CORREO ===== -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilCorreoRecuperar"
+            style="@style/Diagno.Campo"
+            android:layout_marginTop="28dp"
+            android:hint="Correo electrónico">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etCorreoRecuperar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:autofillHints="emailAddress"
+                android:imeOptions="actionDone"
+                android:inputType="textEmailAddress"
+                android:maxLines="1" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- ===== PASO 2: CÓDIGO ===== -->
+        <LinearLayout
+            android:id="@+id/pasoCodigo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilCodigoRecuperar"
+                style="@style/Diagno.Campo"
+                android:layout_marginTop="28dp"
+                android:hint="Código del correo">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etCodigoRecuperar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:autofillHints="smsOTPCode"
+                    android:gravity="center"
+                    android:imeOptions="actionDone"
+                    android:inputType="number"
+                    android:letterSpacing="0.4"
+                    android:maxLength="10"
+                    android:maxLines="1"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnReenviarRecuperar"
+                style="@style/Diagno.BotonTexto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="-12dp"
+                android:text="Reenviar código" />
+        </LinearLayout>
+
+        <!-- ===== PASO 3: CONTRASEÑA NUEVA ===== -->
+        <LinearLayout
+            android:id="@+id/pasoNuevaClave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilNuevaClave"
+                style="@style/Diagno.Campo"
+                android:layout_marginTop="28dp"
+                android:hint="Contraseña nueva"
+                app:endIconMode="password_toggle"
+                app:helperText="Mínimo 8 caracteres, con letras y números">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etNuevaClave"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:autofillHints="newPassword"
+                    android:imeOptions="actionNext"
+                    android:inputType="textPassword"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilConfirmarClave"
+                style="@style/Diagno.Campo"
+                android:hint="Confirmar contraseña nueva"
+                app:endIconMode="password_toggle">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etConfirmarClave"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:autofillHints="newPassword"
+                    android:imeOptions="actionDone"
+                    android:inputType="textPassword"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAccionRecuperar"
+                style="@style/Diagno.BotonPrincipal"
+                android:text="Enviar código" />
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/progresoRecuperar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:elevation="8dp"
+                android:indeterminate="true"
+                android:visibility="gone"
+                app:indicatorColor="@android:color/white"
+                app:indicatorSize="24dp"
+                app:trackThickness="3dp" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvNotaRecuperar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Revisa también la carpeta de spam. El código vence en 1 hora."
+            android:textColor="@color/texto_sec"
+            android:textSize="13sp" />
+    </LinearLayout>
+</ScrollView>
