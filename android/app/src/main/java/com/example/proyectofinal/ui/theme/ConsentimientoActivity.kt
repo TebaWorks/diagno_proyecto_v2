@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.proyectofinal.R
 import com.example.proyectofinal.data.repositorio.AuthRepositorio
 import com.example.proyectofinal.data.repositorio.CacheLocal
+import com.example.proyectofinal.data.repositorio.ConocimientoLocal
 import com.example.proyectofinal.data.repositorio.SesionLocal
 import com.example.proyectofinal.data.repositorio.mensajeErrorAuth
 import com.google.android.material.button.MaterialButton
@@ -80,6 +81,7 @@ class ConsentimientoActivity : ComponentActivity() {
             lifecycleScope.launch {
                 runCatching { auth.cerrarSesion() }
                 SesionLocal(this@ConsentimientoActivity).borrar()
+                ConocimientoLocal(this@ConsentimientoActivity).borrarTodo()
                 CacheLocal(this@ConsentimientoActivity).borrar()
                 val intent = Intent(this@ConsentimientoActivity, MainActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

@@ -2,6 +2,7 @@ package com.example.proyectofinal.ui.theme
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
@@ -18,6 +19,7 @@ import com.example.proyectofinal.data.repositorio.AuthRepositorio
 import com.example.proyectofinal.data.repositorio.CacheLocal
 import com.example.proyectofinal.data.repositorio.EstadoSesion
 import com.example.proyectofinal.data.repositorio.SesionLocal
+import com.example.proyectofinal.data.repositorio.SincronizacionOffline
 
 class MainActivity : ComponentActivity() {
 
@@ -132,13 +134,15 @@ class MainActivity : ComponentActivity() {
                     layoutBienvenida.visibility = View.GONE
                     layoutInicio.visibility = View.VISIBLE
 
-                    // Con internet, actualiza el nombre por si cambió en otro dispositivo
+                    // Con internet: actualiza el nombre y descarga las fichas para el modo sin conexión
                     if (estado == EstadoSesion.ACTIVA) {
                         runCatching { auth.nombreUsuario() }.onSuccess { nombre ->
                             sesion.actualizarNombre(nombre)
                             cache.guardarNombre(nombre)
                             tvSaludoInicio.text = "Hola, $nombre"
                         }
+                        runCatching { SincronizacionOffline.sincronizar(this@MainActivity) }
+                            .onFailure { Log.e("OFFLINE", "No se pudieron sincronizar las fichas", it) }
                     }
                 }
             }

@@ -6,6 +6,11 @@ CREATE TABLE public.perfil (
   nombre_completo text NOT NULL,
   nivel_conocimiento text NOT NULL DEFAULT 'novato'::text CHECK (nivel_conocimiento = ANY (ARRAY['novato'::text, 'con_conocimiento'::text, 'avanzado'::text])),
   creado_en timestamp with time zone NOT NULL DEFAULT now(),
+  acepta_privacidad boolean NOT NULL DEFAULT false,
+  acepta_compartir boolean NOT NULL DEFAULT false,
+  version_politica text,
+  consentimiento_en timestamp with time zone,
+  nivel_elegido_en timestamp with time zone,
   CONSTRAINT perfil_pkey PRIMARY KEY (id),
   CONSTRAINT perfil_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
 );
@@ -203,4 +208,19 @@ CREATE TABLE public.consulta (
   creado_en timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT consulta_pkey PRIMARY KEY (id),
   CONSTRAINT consulta_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.conocimiento_offline (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  usuario_id uuid,
+  titulo text NOT NULL,
+  contenido text NOT NULL CHECK (char_length(contenido) <= 800),
+  palabras_clave ARRAY NOT NULL DEFAULT '{}'::text[],
+  etiqueta_imagen text,
+  categoria text,
+  urgencia text NOT NULL DEFAULT 'media'::text CHECK (urgencia = ANY (ARRAY['baja'::text, 'media'::text, 'alta'::text])),
+  origen text NOT NULL DEFAULT 'consulta'::text CHECK (origen = ANY (ARRAY['base'::text, 'consulta'::text])),
+  comunitaria boolean NOT NULL DEFAULT false,
+  creado_en timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT conocimiento_offline_pkey PRIMARY KEY (id),
+  CONSTRAINT conocimiento_offline_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES auth.users(id)
 );

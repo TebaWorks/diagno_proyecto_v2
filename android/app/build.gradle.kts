@@ -73,7 +73,8 @@ dependencies {
     implementation("androidx.credentials:credentials:1.5.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.5.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-
+    // IA local (Gemma) para el modo sin conexión
+    implementation("com.google.ai.edge.litertlm:litertlm-android:0.16.1")
     // CameraX (cámara del chat con IA)
     implementation("androidx.camera:camera-core:1.6.1")
     implementation("androidx.camera:camera-camera2:1.6.1")

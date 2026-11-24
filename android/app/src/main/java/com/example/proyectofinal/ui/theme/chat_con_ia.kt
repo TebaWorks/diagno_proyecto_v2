@@ -43,6 +43,9 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.example.proyectofinal.data.repositorio.AsistenteOffline
+import com.example.proyectofinal.data.repositorio.FuenteOffline
+import com.example.proyectofinal.data.repositorio.SesionLocal
 
 // Pantalla "Chat con IA" (Asistente Diagno), con envío de fotos
 class chat_con_ia : ComponentActivity() {
@@ -87,13 +90,6 @@ class chat_con_ia : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Sin internet no se puede usar la IA: muestra la pantalla "Modo sin conexión"
-        if (!Conexion.hayInternet(this)) {
-            startActivity(Intent(this, SinConexionActivity::class.java))
-            finish()
-            return
-        }
-
         enableEdgeToEdge()
         setContentView(R.layout.activity_chat_con_ia)
 
@@ -125,6 +121,13 @@ class chat_con_ia : ComponentActivity() {
                     "tienes, hacerme cualquier consulta o enviarme una foto de tu vehículo.",
             esUsuario = false
         )
+        if (!Conexion.hayInternet(this)) {
+            agregarMensaje(
+                "Estás sin conexión. Responderé con la información guardada en tu teléfono. " +
+                        "Las fotos y el análisis completo necesitan internet.",
+                esUsuario = false
+            )
+        }
 
         // Nivel y vehículo principal, para que la IA adapte sus respuestas
         lifecycleScope.launch {
@@ -247,9 +250,13 @@ class chat_con_ia : ComponentActivity() {
         val foto = adjunto
         if ((textoEscrito.isEmpty() && foto == null) || esperando) return
 
-        // Si se cortó el internet mientras chateabas
+        // Sin internet: responde el asistente local (fichas o Gemma)
         if (!Conexion.hayInternet(this)) {
-            startActivity(Intent(this, SinConexionActivity::class.java))
+            if (foto != null) {
+                Toast.makeText(this, "Las fotos necesitan internet. Escribe tu consulta.", Toast.LENGTH_LONG).show()
+                return
+            }
+            responderSinConexion(textoEscrito)
             return
         }
 
@@ -298,6 +305,39 @@ class chat_con_ia : ComponentActivity() {
         }
     }
 
+    // Respuesta sin conexión: fichas guardadas o Gemma local
+    private fun responderSinConexion(texto: String) {
+        quitarChipAnalisis()
+        etMensaje.text.clear()
+        agregarMensaje(texto, esUsuario = true)
+
+        esperando = true
+        btnEnviar.alpha = 0.5f
+        val escribiendo = agregarMensaje("Buscando en la información guardada…", esUsuario = false, conHora = false)
+        escribiendo.alpha = 0.6f
+
+        lifecycleScope.launch {
+            try {
+                val nivelUsuario = nivel ?: SesionLocal(this@chat_con_ia).nivel()
+                val r = AsistenteOffline.responder(this@chat_con_ia, texto, nivelUsuario)
+                val pie = when (r.fuente) {
+                    FuenteOffline.GEMMA -> "\n\n— Respuesta sin conexión (IA local)"
+                    FuenteOffline.FICHAS -> "\n\n— Respuesta sin conexión (información guardada)"
+                    FuenteOffline.SIN_INFORMACION -> ""
+                }
+                contenedor.removeView(escribiendo)
+                agregarMensaje(r.texto + pie, esUsuario = false)
+            } catch (e: Exception) {
+                Log.e("OFFLINE", "Error en el asistente sin conexión", e)
+                contenedor.removeView(escribiendo)
+                agregarMensaje("No pude buscar en la información guardada. Inténtalo de nuevo.", esUsuario = false)
+            } finally {
+                esperando = false
+                btnEnviar.alpha = 1f
+            }
+        }
+    }
+
     // ---------- Resultado del análisis ----------
 
     private fun quitarChipAnalisis() {
@@ -336,7 +376,7 @@ class chat_con_ia : ComponentActivity() {
     private fun abrirAnalisis() {
         if (esperando) return
         if (!Conexion.hayInternet(this)) {
-            startActivity(Intent(this, SinConexionActivity::class.java))
+            Toast.makeText(this, "El análisis completo necesita internet", Toast.LENGTH_LONG).show()
             return
         }
         esperando = true

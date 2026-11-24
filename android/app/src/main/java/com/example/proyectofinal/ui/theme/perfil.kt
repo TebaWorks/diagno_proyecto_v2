@@ -26,6 +26,9 @@ import kotlinx.coroutines.launch
 import android.text.InputType
 import android.widget.FrameLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.example.proyectofinal.data.repositorio.ConocimientoLocal
+import com.example.proyectofinal.data.repositorio.GemmaLocal
+
 class perfil : ComponentActivity() {
 
     private val auth = AuthRepositorio()
@@ -245,9 +248,7 @@ class perfil : ComponentActivity() {
         lifecycleScope.launch {
             try {
                 auth.eliminarCuenta()
-                CacheLocal(this@perfil).borrar()
-                NotificacionLocal(this@perfil).borrar()
-                SesionLocal(this@perfil).borrar()
+                borrarDatosDelTelefono()
                 toast("Tu cuenta fue eliminada")
                 val intent = Intent(this@perfil, MainActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -259,13 +260,10 @@ class perfil : ComponentActivity() {
         }
     }
 
-    // Cierra la sesión en Supabase y vuelve a la pantalla de bienvenida
     // Cierra la sesión: es lo ÚNICO que borra la llave y los datos del teléfono
     private fun cerrarSesion() {
         lifecycleScope.launch {
-            CacheLocal(this@perfil).borrar()                       // datos guardados
-            NotificacionLocal(this@perfil).borrar()                // notificaciones
-            com.example.proyectofinal.data.repositorio.SesionLocal(this@perfil).borrar()   // llave
+            borrarDatosDelTelefono()
             try {
                 auth.cerrarSesion()
             } catch (e: Exception) {
@@ -275,6 +273,15 @@ class perfil : ComponentActivity() {
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
         }
+    }
+
+    // Todo lo que el usuario tiene guardado en el teléfono (Ley 21.719: no dejar datos atrás)
+    private fun borrarDatosDelTelefono() {
+        CacheLocal(this).borrar()              // datos de la caché
+        NotificacionLocal(this).borrar()       // notificaciones
+        SesionLocal(this).borrar()             // llave de acceso
+        ConocimientoLocal(this).borrarTodo()   // fichas del modo sin conexión
+        GemmaLocal.liberar()                   // memoria de la IA local
     }
 
     private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()

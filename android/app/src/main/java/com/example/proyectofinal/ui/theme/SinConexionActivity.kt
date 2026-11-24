@@ -47,11 +47,7 @@ class SinConexionActivity : ComponentActivity() {
         nav.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.nav_inicio -> irAInicio()
-                R.id.nav_chat -> Toast.makeText(
-                    this,
-                    "El chat con IA estará disponible cuando recuperes la conexión",
-                    Toast.LENGTH_SHORT
-                ).show()
+                R.id.nav_chat -> startActivity(Intent(this, chat_con_ia::class.java))
                 R.id.nav_vehiculos -> startActivity(Intent(this, VehiculoActivity::class.java))
                 R.id.nav_perfil -> startActivity(Intent(this, perfil::class.java))
             }
