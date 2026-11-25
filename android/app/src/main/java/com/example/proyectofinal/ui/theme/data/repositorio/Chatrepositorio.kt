@@ -50,16 +50,30 @@ class ChatRepositorio {
     var ultimasFuentes: List<FuenteWeb> = emptyList()
         private set
 
+    // Llama a la función; si la conexión se corta o el servidor falla momentáneamente, reintenta una vez
     private suspend fun llamar(peticion: ChatPeticion): ChatRespuesta {
-        val r = supabase.functions.invoke(
-            function = "chat",
-            body = peticion,
-            headers = Headers.build { append(HttpHeaders.ContentType, "application/json") }
-        )
-        val datos = json.decodeFromString<ChatRespuesta>(r.bodyAsText())
-        datos.error?.let { throw IllegalStateException(it) }
-        datos.conversacion_id?.let { conversacionId = it }
-        return datos
+        var ultimoError: Exception? = null
+        repeat(2) { intento ->
+            try {
+                val r = supabase.functions.invoke(
+                    function = "chat",
+                    body = peticion,
+                    headers = Headers.build { append(HttpHeaders.ContentType, "application/json") }
+                )
+                val datos = json.decodeFromString<ChatRespuesta>(r.bodyAsText())
+                datos.error?.let { throw IllegalStateException(it) }
+                datos.conversacion_id?.let { conversacionId = it }
+                return datos
+            } catch (e: Exception) {
+                ultimoError = e
+                val texto = (e.message ?: "").lowercase()
+                val reintentable = "reset" in texto || "timeout" in texto ||
+                        "gemini_error" in texto || "503" in texto || "500" in texto
+                if (!reintentable || intento == 1) throw e
+                kotlinx.coroutines.delay(1500)
+            }
+        }
+        throw ultimoError ?: IllegalStateException("Error desconocido")
     }
 
     // Envía solo el último mensaje del usuario; el servidor ya tiene el historial

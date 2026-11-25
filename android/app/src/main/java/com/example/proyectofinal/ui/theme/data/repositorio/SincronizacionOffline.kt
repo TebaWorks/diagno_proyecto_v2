@@ -15,7 +15,13 @@ private data class FichaRemotaDto(
     val categoria: String? = null,
     val urgencia: String = "media",
     val origen: String = "consulta",
-    @SerialName("etiqueta_imagen") val etiquetaImagen: String? = null
+    @SerialName("etiqueta_imagen") val etiquetaImagen: String? = null,
+    val preguntas: List<String> = emptyList(),
+    @SerialName("respuesta_novato") val respuestaNovato: String? = null,
+    @SerialName("respuesta_intermedio") val respuestaIntermedio: String? = null,
+    @SerialName("respuesta_avanzado") val respuestaAvanzado: String? = null,
+    val pasos: List<String> = emptyList(),
+    val recomendaciones: List<String> = emptyList()
 )
 
 // Descarga las fichas al teléfono. RLS entrega solo las del usuario, las base y las comunitarias.
@@ -29,14 +35,14 @@ object SincronizacionOffline {
         ConocimientoLocal(context).reemplazarTodo(
             remotas.map {
                 FichaLocal(
-                    id = it.id,
-                    titulo = it.titulo,
-                    contenido = it.contenido,
-                    palabras = it.palabrasClave,
-                    categoria = it.categoria ?: "",
-                    urgencia = it.urgencia,
-                    origen = it.origen,
-                    etiquetaImagen = it.etiquetaImagen
+                    id = it.id, titulo = it.titulo, contenido = it.contenido,
+                    palabras = it.palabrasClave, categoria = it.categoria ?: "",
+                    urgencia = it.urgencia, origen = it.origen, etiquetaImagen = it.etiquetaImagen,
+                    preguntas = it.preguntas,
+                    respuestaNovato = it.respuestaNovato,
+                    respuestaIntermedio = it.respuestaIntermedio,
+                    respuestaAvanzado = it.respuestaAvanzado,
+                    pasos = it.pasos, recomendaciones = it.recomendaciones
                 )
             }
         )

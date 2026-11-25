@@ -11,6 +11,11 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import io.github.jan.supabase.functions.functions
+import io.github.jan.supabase.auth.status.SessionStatus
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 
 @Serializable
 private data class PerfilNombreDto(
@@ -117,7 +122,36 @@ class AuthRepositorio {
         }
     }
 
-    suspend fun cerrarSesion() = supabase.auth.signOut()
+    suspend fun cerrarSesion() {
+        try {
+            supabase.auth.signOut()
+
+        } catch (e: CancellationException) {
+
+            // Aunque se cancele la petición, limpiar la sesión local.
+            withContext(NonCancellable) {
+                try {
+                    supabase.auth.clearSession()
+                } catch (errorLimpieza: Exception) {
+                    e.addSuppressed(errorLimpieza)
+                }
+            }
+
+            throw e
+
+        } catch (e: Exception) {
+
+            // Si falla la conexión, no mantener la sesión
+            // autenticada dentro del dispositivo.
+            try {
+                supabase.auth.clearSession()
+            } catch (errorLimpieza: Exception) {
+                e.addSuppressed(errorLimpieza)
+            }
+
+            throw e
+        }
+    }
 
     suspend fun haySesion(): Boolean {
         supabase.auth.awaitInitialization()
@@ -232,17 +266,55 @@ class AuthRepositorio {
     }
 
     // Estado del acceso, tolerante a la falta de internet
-    suspend fun estadoSesion(sesion: SesionLocal, hayInternet: Boolean): EstadoSesion {
-        val enSupabase = runCatching {
-            supabase.auth.awaitInitialization()
-            supabase.auth.currentUserOrNull() != null
-        }.getOrDefault(false)
+    @Suppress("UNUSED_PARAMETER")
+    suspend fun estadoSesion(
+        sesion: SesionLocal,
+        hayInternet: Boolean
+    ): EstadoSesion {
 
-        return when {
-            enSupabase -> EstadoSesion.ACTIVA
-            sesion.tieneLlave() && !hayInternet -> EstadoSesion.SIN_CONEXION
-            sesion.tieneLlave() && hayInternet -> EstadoSesion.REVOCADA
-            else -> EstadoSesion.NINGUNA
+        val estadoAuth = try {
+            supabase.auth.awaitInitialization()
+
+            supabase.auth.sessionStatus.first {
+                it !is SessionStatus.Initializing
+            }
+
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        }
+
+        val tieneLlave = sesion.tieneLlave()
+
+        return when (estadoAuth) {
+
+            is SessionStatus.Authenticated -> {
+                EstadoSesion.ACTIVA
+            }
+
+            is SessionStatus.RefreshFailure -> {
+                if (tieneLlave) EstadoSesion.SIN_CONEXION
+                else EstadoSesion.NINGUNA
+            }
+
+            is SessionStatus.NotAuthenticated -> {
+                when {
+                    estadoAuth.isSignOut && tieneLlave ->
+                        EstadoSesion.REVOCADA
+
+                    tieneLlave ->
+                        EstadoSesion.SIN_CONEXION
+
+                    else ->
+                        EstadoSesion.NINGUNA
+                }
+            }
+
+            else -> {
+                if (tieneLlave) EstadoSesion.SIN_CONEXION
+                else EstadoSesion.NINGUNA
+            }
         }
     }
 }

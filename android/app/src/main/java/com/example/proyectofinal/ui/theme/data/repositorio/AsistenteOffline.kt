@@ -20,8 +20,7 @@ object AsistenteOffline {
         // Sin fichas relevantes: no se inventa nada
         if (resultados.isEmpty()) {
             val texto = (if (alerta) MotorOffline.AVISO_SEGURIDAD + "\n\n" else "") +
-                    "No tengo información guardada sobre esto. Cuando tengas internet, " +
-                    "consulta al asistente en línea y la respuesta quedará disponible sin conexión."
+                    MotorOffline.respuestaSinInformacion()
             return RespuestaOffline(texto, FuenteOffline.SIN_INFORMACION)
         }
 
@@ -40,6 +39,6 @@ object AsistenteOffline {
         }
 
         // Sin Gemma (o si falló): respuesta clásica con fichas
-        return RespuestaOffline(MotorOffline.respuestaClasica(resultados, alerta), FuenteOffline.FICHAS)
+        return RespuestaOffline(MotorOffline.respuestaClasica(resultados, alerta, nivel), FuenteOffline.FICHAS)
     }
 }

@@ -11,20 +11,32 @@ const INSTRUCCIONES_BASE = `
 Eres Diagno, un asistente de mantención automotriz PREVENTIVA.
 Reglas:
 - Usa como fuente principal la INFORMACIÓN DEL VEHÍCULO que viene más abajo. No inventes datos técnicos (medidas, intervalos, capacidades) que no estén ahí; si falta un dato, dilo con claridad.
+- Responde SIEMPRE la consulta del usuario. Si no tiene vehículo registrado, responde igual de forma general y, al final, sugiere registrarlo para personalizar.
 - Ayudas a anticipar problemas con chequeos simples y la pauta de mantención. Orientas, no diagnosticas fallas complejas.
-- Solo puedes dar guías paso a paso para: cambio de rueda de repuesto, filtro de aire y filtro de habitáculo.
+- Solo puedes dar guías paso a paso para: cambio de rueda de repuesto, filtro de aire, filtro de habitáculo y las soluciones de "mal menor" descritas abajo.
 - Ante cualquier caso riesgoso o fuera de esas tareas, recomienda acudir a un taller mecánico.
 - Si algo compromete la seguridad (frenos, dirección, temperatura alta, presión de aceite, testigos rojos), indica claramente que no siga manejando y busque ayuda.
+- MAL MENOR: si existe una solución TEMPORAL y práctica que solo implica un riesgo moderado para el VEHÍCULO (por ejemplo, arrancar empujando un auto de transmisión manual con la batería descargada: contacto puesto, segunda marcha, soltar el embrague al tomar velocidad), puedes ofrecerla para que el conductor llegue a un taller. Explica el riesgo, PREGUNTA primero si está dispuesto a hacerlo y da los pasos solo si acepta. NUNCA propongas nada con riesgo de incendio, explosión, electrocución o lesiones, ni que afecte frenos o dirección con el vehículo en marcha, ni manipular combustible, gas o airbags.
 - Si el usuario envía una foto, describe lo que ves con prudencia y aclara cuando no puedas asegurar algo.
-- Responde en español de Chile, de forma clara y breve.
+- Responde en español de Chile, de forma clara y breve. Entiende el lenguaje coloquial (ej. "no parte", "se quedó en pana", "la luz del aceite", "bencina").
 
 FORMATO DE SALIDA (JSON obligatorio):
 - "respuesta": el texto para el usuario (puedes usar listas con guiones).
-- "necesita_busqueda": true SOLO si la pregunta es automotriz, la INFORMACIÓN DEL VEHÍCULO no alcanza para responder bien y una búsqueda en internet aportaría. En cualquier otro caso, false. Ante una emergencia de seguridad, siempre false.
-- "consulta_busqueda": si necesita_busqueda es true, una búsqueda breve en español que incluya la marca y el modelo del vehículo; si no, texto vacío.
+- "necesita_busqueda": true SOLO si la pregunta es automotriz, la INFORMACIÓN DEL VEHÍCULO no alcanza y una búsqueda en internet aportaría. Ante una emergencia de seguridad, siempre false.
+- "consulta_busqueda": si necesita_busqueda es true, una búsqueda breve en español con la marca y el modelo del vehículo; si no, texto vacío.
 - "derivar_taller": true si recomiendas acudir a un taller mecánico.
-- "resumen_offline": la respuesta resumida en máximo 400 caracteres, autosuficiente y en lenguaje simple, para consultarla sin internet. Texto vacío si la pregunta no es automotriz.
-- "palabras_clave": de 3 a 8 palabras clave en minúsculas y sin tildes (incluye sinónimos comunes, por ejemplo "neumatico", "llanta"). Lista vacía si la pregunta no es automotriz.
+`;
+
+const INSTRUCCIONES_FICHAS = `
+Genera fichas para que una app responda SIN internet la consulta de abajo y situaciones cercanas (causas probables, variantes, qué hacer). Usa la respuesta dada como base y no inventes datos técnicos. Si la consulta no es automotriz, devuelve una lista vacía.
+Entrega 3 fichas. Cada ficha:
+- "titulo": breve; incluye la marca y el modelo del vehículo si se indican.
+- "palabras_clave": 8 a 12, en minúsculas y sin tildes, con sinónimos y formas coloquiales chilenas.
+- "preguntas_similares": 10 formas distintas en que un conductor haría la pregunta (coloquiales y con errores comunes).
+- "respuesta_novato", "respuesta_intermedio", "respuesta_avanzado": la misma orientación en tres niveles (máximo 400 caracteres cada una).
+- "pasos": pasos concretos si aplica (incluye la solución de mal menor si corresponde, con su advertencia).
+- "recomendaciones": 2 a 3 recomendaciones cortas.
+- "urgencia": "baja", "media" o "alta".
 `;
 
 const INSTRUCCIONES_WEB = `
@@ -64,14 +76,45 @@ const ESQUEMA = {
     necesita_busqueda: { type: "BOOLEAN" },
     consulta_busqueda: { type: "STRING" },
     derivar_taller: { type: "BOOLEAN" },
-    resumen_offline: { type: "STRING" },
-    palabras_clave: { type: "ARRAY", items: { type: "STRING" } },
   },
   required: ["respuesta", "necesita_busqueda", "derivar_taller"],
 };
 
+const ESQUEMA_FICHAS = {
+  type: "OBJECT",
+  properties: {
+    fichas: {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          titulo: { type: "STRING" },
+          palabras_clave: { type: "ARRAY", items: { type: "STRING" } },
+          preguntas_similares: { type: "ARRAY", items: { type: "STRING" } },
+          respuesta_novato: { type: "STRING" },
+          respuesta_intermedio: { type: "STRING" },
+          respuesta_avanzado: { type: "STRING" },
+          pasos: { type: "ARRAY", items: { type: "STRING" } },
+          recomendaciones: { type: "ARRAY", items: { type: "STRING" } },
+          urgencia: { type: "STRING", enum: ["baja", "media", "alta"] },
+        },
+        required: ["titulo", "palabras_clave", "preguntas_similares", "respuesta_novato",
+                   "respuesta_intermedio", "respuesta_avanzado", "urgencia"],
+      },
+    },
+  },
+  required: ["fichas"],
+};
+
 // Minúsculas, sin tildes y sin espacios sobrantes
 const normalizar = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim();
+
+// Lista de textos limpia: sin vacíos ni repetidos, con un máximo
+function limpiarLista(valor: any, max: number, normalizada: boolean): string[] {
+  if (!Array.isArray(valor)) return [];
+  const lista = valor.map((v) => String(v ?? "").trim()).map((v) => (normalizada ? normalizar(v) : v)).filter(Boolean);
+  return [...new Set(lista)].slice(0, max);
+}
 
 const ESQUEMA_ANALISIS = {
   type: "OBJECT",
@@ -163,7 +206,7 @@ async function cargarConocimiento(sb: any, vehiculo: any): Promise<{ texto: stri
   const md = modelo.data;
   const delUsuario = vehiculo
     ? `VEHÍCULO DEL USUARIO: ${vehiculo.marca ?? ""} ${vehiculo.modelo ?? ""} ${vehiculo.anio ?? ""}${vehiculo.combustible ? ", " + vehiculo.combustible : ""}. Kilometraje actual: ${km} km.`
-    : "El usuario todavía no registra un vehículo; pídele que lo registre para personalizar la mantención.";
+    : "El usuario todavía no registra un vehículo: responde igual de forma general y, al final, sugiérele registrarlo.";
   const nombre = `${vehiculo?.marca ?? md?.marca ?? ""} ${vehiculo?.modelo ?? md?.modelo ?? ""}`.trim();
 
   const texto = [
@@ -193,40 +236,48 @@ function construirContenido(historial: any[], mensaje: string, imagen: any) {
   return contents;
 }
 
-// Llama a Gemini pidiendo una respuesta JSON con el esquema indicado
+// Llama a Gemini pidiendo JSON con el esquema indicado; reintenta una vez si está sobrecargado
 async function pedirJSON(sistema: string, contents: any[], esquema: any) {
   const modelo = Deno.env.get("GEMINI_MODEL") ?? "gemini-3.5-flash-lite";
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-goog-api-key": Deno.env.get("GEMINI_API_KEY")! },
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: sistema }] },
-      contents,
-      generationConfig: { responseMimeType: "application/json", responseSchema: esquema },
-    }),
+  const cuerpo = JSON.stringify({
+    system_instruction: { parts: [{ text: sistema }] },
+    contents,
+    generationConfig: { responseMimeType: "application/json", responseSchema: esquema },
   });
 
-  if (r.status === 429) throw new Error("CUOTA");
-  if (!r.ok) {
-    console.error("Error de Gemini:", r.status, await r.text());
-    throw new Error("GEMINI_ERROR");
+  for (let intento = 1; intento <= 2; intento++) {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": Deno.env.get("GEMINI_API_KEY")! },
+      body: cuerpo,
+    });
+
+    if (r.status === 429) throw new Error("CUOTA");
+    if ((r.status === 500 || r.status === 503) && intento === 1) {
+      console.warn("Gemini sobrecargado, reintentando:", r.status);
+      await new Promise((ok) => setTimeout(ok, 1200));
+      continue;
+    }
+    if (!r.ok) {
+      console.error("Error de Gemini:", r.status, await r.text());
+      throw new Error("GEMINI_ERROR");
+    }
+    const datos = await r.json();
+    const texto = datos.candidates?.[0]?.content?.parts?.map((p: any) => p.text ?? "").join("") ?? "";
+    try {
+      return { modelo, datos: JSON.parse(texto), texto };
+    } catch {
+      return { modelo, datos: null, texto };
+    }
   }
-  const datos = await r.json();
-  const texto = datos.candidates?.[0]?.content?.parts?.map((p: any) => p.text ?? "").join("") ?? "";
-  try {
-    return { modelo, datos: JSON.parse(texto), texto };
-  } catch {
-    return { modelo, datos: null, texto };
-  }
+  throw new Error("GEMINI_ERROR");
 }
 
 async function preguntarGemini(sistema: string, contents: any[]) {
   const { modelo, datos: o, texto } = await pedirJSON(sistema, contents, ESQUEMA);
   if (!o) {
-    return {
-      modelo, respuesta: texto || "No pude generar una respuesta.", necesita_busqueda: false,
-      consulta_busqueda: "", derivar_taller: false, resumen_offline: "", palabras_clave: [] as string[],
-    };
+    return { modelo, respuesta: texto || "No pude generar una respuesta.", necesita_busqueda: false,
+             consulta_busqueda: "", derivar_taller: false };
   }
   return {
     modelo,
@@ -234,11 +285,40 @@ async function preguntarGemini(sistema: string, contents: any[]) {
     necesita_busqueda: o.necesita_busqueda === true,
     consulta_busqueda: String(o.consulta_busqueda ?? ""),
     derivar_taller: o.derivar_taller === true,
-    resumen_offline: String(o.resumen_offline ?? "").slice(0, 800),
-    palabras_clave: Array.isArray(o.palabras_clave)
-      ? [...new Set(o.palabras_clave.map((p: any) => normalizar(String(p))).filter(Boolean))].slice(0, 8) as string[]
-      : [] as string[],
   };
+}
+
+// Genera y guarda las fichas offline en una llamada aparte (corre después de responder)
+async function generarFichas(admin: any, usuarioId: string, nombreVehiculo: string,
+                             pregunta: string, respuesta: string, derivar: boolean) {
+  const sistema = INSTRUCCIONES_FICHAS + (nombreVehiculo ? `\nVehículo: ${nombreVehiculo}.` : "");
+  const contents = [{ role: "user", parts: [{ text: `CONSULTA: ${pregunta}\n\nRESPUESTA DADA: ${respuesta}` }] }];
+  const { datos } = await pedirJSON(sistema, contents, ESQUEMA_FICHAS);
+  const marcaModelo = limpiarLista(nombreVehiculo.split(" "), 3, true);
+
+  const filas = (Array.isArray(datos?.fichas) ? datos.fichas : [])
+    .filter((f: any) => f?.titulo && f?.respuesta_intermedio)
+    .slice(0, 5)
+    .map((f: any) => ({
+      usuario_id: usuarioId,
+      titulo: String(f.titulo).slice(0, 120),
+      contenido: String(f.respuesta_intermedio).slice(0, 800),
+      palabras_clave: [...new Set([...limpiarLista(f.palabras_clave, 15, true), ...marcaModelo])],
+      preguntas: limpiarLista(f.preguntas_similares, 20, false),
+      respuesta_novato: String(f.respuesta_novato ?? "").slice(0, 800),
+      respuesta_intermedio: String(f.respuesta_intermedio ?? "").slice(0, 800),
+      respuesta_avanzado: String(f.respuesta_avanzado ?? "").slice(0, 800),
+      pasos: limpiarLista(f.pasos, 10, false),
+      recomendaciones: limpiarLista(f.recomendaciones, 5, false),
+      urgencia: ["baja", "media", "alta"].includes(f.urgencia) ? f.urgencia : (derivar ? "alta" : "media"),
+      categoria: "consulta",
+      origen: "consulta",
+    }));
+
+  if (filas.length === 0) return;
+  const { error } = await admin.from("conocimiento_offline").insert(filas);
+  if (error) console.error("No se guardaron las fichas offline:", error);
+  else console.log("Fichas offline guardadas:", filas.length);
 }
 
 async function buscarWeb(consulta: string) {
@@ -388,20 +468,11 @@ Deno.serve(async (req) => {
     }).select("id").single();
     if (errorIA) console.error("No se guardó la respuesta:", errorIA);
 
-    // 11. Guardar la ficha para el modo sin conexión
-    let fichaGuardada = false;
-    if (res.resumen_offline && res.palabras_clave.length >= 2) {
-      const { error: errorFicha } = await admin.from("conocimiento_offline").insert({
-        usuario_id: user.id,
-        titulo: mensaje.slice(0, 80),
-        contenido: res.resumen_offline,
-        palabras_clave: res.palabras_clave,
-        urgencia: res.derivar_taller ? "alta" : "media",
-        origen: "consulta",
-      });
-      if (errorFicha) console.error("No se guardó la ficha offline:", errorFicha);
-      else fichaGuardada = true;
-    }
+    // 11. Fichas offline en segundo plano: no retrasan ni ponen en riesgo la respuesta
+    const tareaFichas = generarFichas(admin, user.id, conocimiento.nombre ?? "", mensaje, res.respuesta, res.derivar_taller)
+      .catch((e) => console.error("Fichas offline:", e));
+    // @ts-ignore: EdgeRuntime existe en Supabase Edge Functions
+    if (typeof EdgeRuntime !== "undefined") EdgeRuntime.waitUntil(tareaFichas);
 
     return json({
       conversacion_id,
@@ -411,7 +482,7 @@ Deno.serve(async (req) => {
       uso_web: fuentes.length > 0,
       fuentes: fuentesCortas,
       tiempo_ms,
-      ficha_offline: fichaGuardada,
+      ficha_offline: true,
       guardado: !errorUsuario && !errorIA,
       error_guardado: errorUsuario?.message ?? errorIA?.message ?? null,
     });
