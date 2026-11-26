@@ -16,7 +16,7 @@ Reglas:
 - Solo puedes dar guías paso a paso para: cambio de rueda de repuesto, filtro de aire, filtro de habitáculo y las soluciones de "mal menor" descritas abajo.
 - Ante cualquier caso riesgoso o fuera de esas tareas, recomienda acudir a un taller mecánico.
 - Si algo compromete la seguridad (frenos, dirección, temperatura alta, presión de aceite, testigos rojos), indica claramente que no siga manejando y busque ayuda.
-- MAL MENOR: si existe una solución TEMPORAL y práctica que solo implica un riesgo moderado para el VEHÍCULO (por ejemplo, arrancar empujando un auto de transmisión manual con la batería descargada: contacto puesto, segunda marcha, soltar el embrague al tomar velocidad), puedes ofrecerla para que el conductor llegue a un taller. Explica el riesgo, PREGUNTA primero si está dispuesto a hacerlo y da los pasos solo si acepta. NUNCA propongas nada con riesgo de incendio, explosión, electrocución o lesiones, ni que afecte frenos o dirección con el vehículo en marcha, ni manipular combustible, gas o airbags.
+- Ante una batería descargada, prioriza asistencia en carretera o ayuda técnica. No indiques maniobras de arranque por empuje o remolque, ni procedimientos que puedan exponer al usuario a lesiones.
 - Si el usuario envía una foto, describe lo que ves con prudencia y aclara cuando no puedas asegurar algo.
 - Responde en español de Chile, de forma clara y breve. Entiende el lenguaje coloquial (ej. "no parte", "se quedó en pana", "la luz del aceite", "bencina").
 
@@ -28,15 +28,26 @@ FORMATO DE SALIDA (JSON obligatorio):
 `;
 
 const INSTRUCCIONES_FICHAS = `
-Genera fichas para que una app responda SIN internet la consulta de abajo y situaciones cercanas (causas probables, variantes, qué hacer). Usa la respuesta dada como base y no inventes datos técnicos. Si la consulta no es automotriz, devuelve una lista vacía.
-Entrega 3 fichas. Cada ficha:
-- "titulo": breve; incluye la marca y el modelo del vehículo si se indican.
-- "palabras_clave": 8 a 12, en minúsculas y sin tildes, con sinónimos y formas coloquiales chilenas.
-- "preguntas_similares": 10 formas distintas en que un conductor haría la pregunta (coloquiales y con errores comunes).
-- "respuesta_novato", "respuesta_intermedio", "respuesta_avanzado": la misma orientación en tres niveles (máximo 400 caracteres cada una).
-- "pasos": pasos concretos si aplica (incluye la solución de mal menor si corresponde, con su advertencia).
-- "recomendaciones": 2 a 3 recomendaciones cortas.
+Genera fichas para que la app responda SIN internet a la consulta y a situaciones automotrices similares.
+
+Usa la respuesta dada como base. No inventes datos técnicos. Si la consulta no es automotriz, devuelve una lista vacía.
+
+Genera como máximo 2 fichas, priorizando:
+1. La consulta principal.
+2. Una situación cercana que pueda confundirse o preguntarse de otra manera.
+
+Cada ficha debe ser compacta y fácil de encontrar:
+
+- "titulo": breve; incluye marca y modelo si se indican.
+- "palabras_clave": máximo 8, simples, minúsculas y sin tildes. Incluye expresiones fáciles de reconocer, sinónimos y formas coloquiales chilenas.
+- "preguntas_similares": máximo 4 formas distintas y naturales de preguntar lo mismo.
+- "respuesta_novato", "respuesta_intermedio", "respuesta_avanzado": respuestas breves, claras y útiles. Mantén las diferencias de nivel, pero evita repetir información.
+- "pasos": solo los necesarios y permitidos por las reglas de seguridad.
+- "recomendaciones": máximo 3 recomendaciones cortas.
 - "urgencia": "baja", "media" o "alta".
+
+Prioriza palabras clave fáciles de identificar y respuestas útiles para consultas futuras similares.
+No agregues información que no esté respaldada por la respuesta original o el conocimiento del vehículo.
 `;
 
 const INSTRUCCIONES_WEB = `
@@ -85,25 +96,58 @@ const ESQUEMA_FICHAS = {
   properties: {
     fichas: {
       type: "ARRAY",
+      maxItems: 2,
       items: {
         type: "OBJECT",
         properties: {
           titulo: { type: "STRING" },
-          palabras_clave: { type: "ARRAY", items: { type: "STRING" } },
-          preguntas_similares: { type: "ARRAY", items: { type: "STRING" } },
+
+          palabras_clave: {
+            type: "ARRAY",
+            maxItems: 8,
+            items: { type: "STRING" }
+          },
+
+          preguntas_similares: {
+            type: "ARRAY",
+            maxItems: 4,
+            items: { type: "STRING" }
+          },
+
           respuesta_novato: { type: "STRING" },
           respuesta_intermedio: { type: "STRING" },
           respuesta_avanzado: { type: "STRING" },
-          pasos: { type: "ARRAY", items: { type: "STRING" } },
-          recomendaciones: { type: "ARRAY", items: { type: "STRING" } },
-          urgencia: { type: "STRING", enum: ["baja", "media", "alta"] },
+
+          pasos: {
+            type: "ARRAY",
+            maxItems: 5,
+            items: { type: "STRING" }
+          },
+
+          recomendaciones: {
+            type: "ARRAY",
+            maxItems: 3,
+            items: { type: "STRING" }
+          },
+
+          urgencia: {
+            type: "STRING",
+            enum: ["baja", "media", "alta"]
+          }
         },
-        required: ["titulo", "palabras_clave", "preguntas_similares", "respuesta_novato",
-                   "respuesta_intermedio", "respuesta_avanzado", "urgencia"],
-      },
-    },
+        required: [
+          "titulo",
+          "palabras_clave",
+          "preguntas_similares",
+          "respuesta_novato",
+          "respuesta_intermedio",
+          "respuesta_avanzado",
+          "urgencia"
+        ]
+      }
+    }
   },
-  required: ["fichas"],
+  required: ["fichas"]
 };
 
 // Minúsculas, sin tildes y sin espacios sobrantes
@@ -298,18 +342,18 @@ async function generarFichas(admin: any, usuarioId: string, nombreVehiculo: stri
 
   const filas = (Array.isArray(datos?.fichas) ? datos.fichas : [])
     .filter((f: any) => f?.titulo && f?.respuesta_intermedio)
-    .slice(0, 5)
+    .slice(0, 2)
     .map((f: any) => ({
       usuario_id: usuarioId,
       titulo: String(f.titulo).slice(0, 120),
-      contenido: String(f.respuesta_intermedio).slice(0, 800),
-      palabras_clave: [...new Set([...limpiarLista(f.palabras_clave, 15, true), ...marcaModelo])],
-      preguntas: limpiarLista(f.preguntas_similares, 20, false),
-      respuesta_novato: String(f.respuesta_novato ?? "").slice(0, 800),
-      respuesta_intermedio: String(f.respuesta_intermedio ?? "").slice(0, 800),
-      respuesta_avanzado: String(f.respuesta_avanzado ?? "").slice(0, 800),
-      pasos: limpiarLista(f.pasos, 10, false),
-      recomendaciones: limpiarLista(f.recomendaciones, 5, false),
+      contenido: String(f.respuesta_intermedio ?? "").trim(),
+      palabras_clave: [...new Set([...limpiarLista(f.palabras_clave, 8, true), ...marcaModelo])],
+      preguntas: limpiarLista(f.preguntas_similares, 4, false),
+      respuesta_novato: String(f.respuesta_novato ?? "").trim(),
+      respuesta_intermedio: String(f.respuesta_intermedio ?? "").trim(),
+      respuesta_avanzado: String(f.respuesta_avanzado ?? "").trim(),
+      pasos: limpiarLista(f.pasos, 5, false),
+      recomendaciones: limpiarLista(f.recomendaciones, 3, false),
       urgencia: ["baja", "media", "alta"].includes(f.urgencia) ? f.urgencia : (derivar ? "alta" : "media"),
       categoria: "consulta",
       origen: "consulta",

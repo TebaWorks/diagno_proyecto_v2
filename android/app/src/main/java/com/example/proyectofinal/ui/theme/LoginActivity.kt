@@ -68,7 +68,12 @@ class LoginActivity : ComponentActivity() {
         }
 
         btnEntrar.setOnClickListener { intentarIngreso() }
-        btnGoogle.setOnClickListener { ingresarConGoogle() }
+        btnGoogle.setOnClickListener {
+            startActivity(
+                Intent(this, ConsentimientoActivity::class.java)
+                    .putExtra(ConsentimientoActivity.EXTRA_FLUJO_GOOGLE, true)
+            )
+        }
 
         // ¿Olvidaste tu contraseña? → pantalla de recuperación con el correo ya escrito
         findViewById<MaterialButton>(R.id.btnOlvideClave).setOnClickListener {

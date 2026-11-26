@@ -75,6 +75,9 @@ dependencies {
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     // IA local (Gemma) para el modo sin conexión
     implementation("com.google.ai.edge.litertlm:litertlm-android:0.16.1")
+    // IA local (Gemma) para el modo sin conexión
+    implementation("com.google.ai.edge.litertlm:litertlm-android:0.16.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     // CameraX (cámara del chat con IA)
     implementation("androidx.camera:camera-core:1.6.1")
     implementation("androidx.camera:camera-camera2:1.6.1")

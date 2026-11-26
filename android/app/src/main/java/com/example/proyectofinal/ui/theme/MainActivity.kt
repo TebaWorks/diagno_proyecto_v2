@@ -52,20 +52,22 @@ class MainActivity : ComponentActivity() {
         }
 
         // Continuar con Google desde la pantalla de acceso
+        // Continuar con Google desde la pantalla de bienvenida
         val btnGoogle = findViewById<Button>(R.id.btnGoogleBienvenida)
+
         btnGoogle.setOnClickListener {
             if (!Conexion.hayInternet(this)) {
                 toast("Necesitas internet para iniciar sesión")
                 return@setOnClickListener
             }
-            btnGoogle.isEnabled = false
-            btnGoogle.text = "Conectando…"
-            lifecycleScope.launch {
-                val error = ingresarConGoogle()
-                btnGoogle.isEnabled = true
-                btnGoogle.text = "Continuar con Google"
-                if (!error.isNullOrEmpty()) toast(error)
-            }
+
+            startActivity(
+                Intent(this, ConsentimientoActivity::class.java)
+                    .putExtra(
+                        ConsentimientoActivity.EXTRA_FLUJO_GOOGLE,
+                        true
+                    )
+            )
         }
 
         // Términos y privacidad
@@ -83,7 +85,9 @@ class MainActivity : ComponentActivity() {
         findViewById<View>(R.id.cardVehiculo).setOnClickListener {
             startActivity(Intent(this, VehiculoActivity::class.java))
         }
-        findViewById<View>(R.id.cardHistorial).setOnClickListener { toast("Historial") }
+        findViewById<View>(R.id.cardHistorial).setOnClickListener {
+            startActivity(Intent(this, HistorialActivity::class.java))
+        }
 
         findViewById<BottomNavigationView>(R.id.bottomNav).setOnItemSelectedListener {
             when (it.itemId) {
